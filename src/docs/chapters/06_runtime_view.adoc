@@ -1,53 +1,55 @@
 [[section-runtime-view]]
 == Laufzeitsicht
+=== Ablauf Quiz
 
-[role="arc42help"]
-****
-.Inhalt
-Diese Sicht erklärt konkrete Abläufe und Beziehungen zwischen Bausteinen in Form von Szenarien aus den folgenden Bereichen:
+[plantuml, target=diagram-component, format=png]
+@startuml
+autonumber 1.1
+UI -> QuizEngine : erstelle Raum: FragekatalogID
+QuizEngine -> DB : Fragekatalog abholen
+QuizEngine <- DB : Fragekatalog
+UI <- QuizEngine : RoomId
+autonumber 2.1
+UI -> QuizEngine : starte Quiz
+loop quiz-liste
+    UI <- QuizEngine : Frage-Antwort-Paare
+    group Antwortzeit abwarten
+        UI -> QuizEngine : Antwort
+    end
+    UI <- QuizEngine : Score
+end
+UI <- QuizEngine: Endscore
+@enduml
 
-*  Wichtige Abläufe oder _Features_:
-Wie führen die Bausteine der Architektur die wichtigsten Abläufe durch?
-*  Interaktionen an kritischen externen Schnittstellen:
-Wie arbeiten Bausteine mit Nutzern und Nachbarsystemen zusammen?
-* Betrieb und Administration: Inbetriebnahme, Start, Stop.
-* Fehler- und Ausnahmeszenarien
 
-Anmerkung:
-Das Kriterium für die Auswahl der möglichen Szenarien (d.h. Abläufe) des Systems ist deren Architekturrelevanz.
-Es geht nicht darum, möglichst viele Abläufe darzustellen, sondern eine angemessene Auswahl zu dokumentieren.
+.Ablauf
+|===
+|# |Beschreibung
 
-.Motivation
-Sie sollten verstehen, wie (Instanzen von) Bausteine(n) Ihres Systems ihre jeweiligen Aufgaben erfüllen und zur Laufzeit miteinander kommunizieren.
+|1.1
+|Der Raum wird über das Frontend mit einem Fragenkatalog erstellt.
 
-Nutzen Sie diese Szenarien in der Dokumentation hauptsächlich für eine verständlichere Kommunikation mit denjenigen Stakeholdern, die die statischen Modelle (z.B. Bausteinsicht, Verteilungssicht) weniger verständlich finden.
+|1.2
+|Die QuizEngine holt sich den Fragenkatalog aus der Datenbank.
 
-.Form
-Für die Beschreibung von Szenarien gibt es zahlreiche Ausdrucksmöglichkeiten.
-Nutzen Sie beispielsweise:
+|1.3
+|Die Datenbank liefert den gesuchten Fragenkatalog zurück.
 
-* Nummerierte Schrittfolgen oder Aufzählungen in Umgangssprache
-* Aktivitäts- oder Flussdiagramme
-* Sequenzdiagramme
-* BPMN (Geschäftsprozessmodell und -notation) oder EPKs (Ereignis-Prozessketten)
-* Zustandsautomaten
-* ...
+|1.4
+|Die QuizEngine erstellt den Raum und liefert die RaumID.
 
-.Weiterführende Informationen
+|2.1
+|Das Quiz wird über das Frontend gestartet.
 
-Siehe https://docs.arc42.org/section-6/[Laufzeitsicht] in der online-Dokumentation (auf Englisch!).
+|2.2
+|Die QuizEngine liefert nacheinander alle Frage-Antwort-Paare bis der Fragenkatalog komplett durchlaufen ist.
 
-****
+|2.3
+|Alle Teilnehmer Antworten während innerhalb der Antwortzeit.
 
-=== _<Bezeichnung Laufzeitszenario 1>_
+|2.4
+|Nach abgelaufener Antwortzeit liefert die GameEngine den Score für alle Teilnehmer aus.
 
-*  <hier Laufzeitdiagramm oder Ablaufbeschreibung einfügen>
-*  <hier Besonderheiten bei dem Zusammenspiel der Bausteine in diesem Szenario erläutern>
-
-=== _<Bezeichnung Laufzeitszenario 2>_
-
-...
-
-=== _<Bezeichnung Laufzeitszenario n>_
-
-...
+|2.5
+|Nachdem alle Fragen durchlaufen wurden, liefert die GameEngine den Gesamtscore aus.
+|===

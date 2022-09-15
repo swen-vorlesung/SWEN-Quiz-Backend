@@ -1,197 +1,141 @@
 [[section-building-block-view]]
 == Bausteinsicht
+=== Whitebox Gesamtsystem Level 1
 
-[role="arc42help"]
-****
-.Inhalt
-Diese Sicht zeigt die statische Zerlegung des Systems in Bausteine sowie deren Beziehungen.
-Beispiele für Bausteine sind unter anderem:
+[plantuml, target=diagram-component, format=png]
+@startuml
+component "Quiz App" {
+    database DB
+    port User
 
-* Module
-* Komponenten
-* Subsysteme
-* Klassen
-* Interfaces
-* Pakete
-* Bibliotheken
-* Frameworks
-* Schichten
-* Partitionen
-* Tiers
-* Funktionen
-* Makros
-* Operationen
-* Datenstrukturen
-* ...
+    component "Quiz-API"{
+        port "Quiz Updates" as qu
+    }
+    component Frontend{
+        port "User Input" as ui
+    }
 
-Diese Sicht sollte in jeder Architekturdokumentation vorhanden sein.
-In der Analogie zum Hausbau bildet die Bausteinsicht den _Grundrissplan_.
+    DB -- Backend
+    ui <..> qu : Websocket
+    User ..>Frontend
+}
+@enduml
 
-.Motivation
-Behalten Sie den Überblick über den Quellcode, indem Sie die statische Struktur des Systems durch Abstraktion verständlich machen.
+Die Architektur ist nach dem klassischen Client-Server-Prinzip strukturiert. Das Frontend nimmt die User-Interaktion entgegen und sendet die Informationen über den Websocket an das Quiz-API. Das Quiz-API reagiert auf den Input und sendet die Updates aus dem laufenden Quiz an das Frontend.
 
-Damit ermöglichen Sie Kommunikation auf abstrakterer Ebene, ohne zu viele Implementierungsdetails offenlegen zu müssen.
-
-.Form
-Die Bausteinsicht ist eine hierarchische Sammlung von Blackboxen und Whiteboxen (siehe Abbildung unten) und deren Beschreibungen.
-
-image::05_building_blocks-DE.png["Hierarchie in der Bausteinsicht"]
-
-*Ebene 1* ist die Whitebox-Beschreibung des Gesamtsystems, zusammen mit Blackbox-Beschreibungen der darin enthaltenen Bausteine.
-
-*Ebene 2* zoomt in einige Bausteine der Ebene 1 hinein.
-Sie enthält somit die Whitebox-Beschreibungen ausgewählter Bausteine der Ebene 1, jeweils zusammen mit Blackbox-Beschreibungen darin enthaltener Bausteine.
-
-*Ebene 3* zoomt in einige Bausteine der Ebene 2 hinein, usw.
-
-
-.Weiterführende Informationen
-
-Siehe https://docs.arc42.org/section-5/[Bausteinsicht] in der online-Dokumentation (auf Englisch!).
-****
-
-=== Whitebox Gesamtsystem
-
-[role="arc42help"]
-****
-An dieser Stelle beschreiben Sie die Zerlegung des Gesamtsystems anhand des nachfolgenden Whitebox-Templates.
-Dieses enthält:
-
-* Ein Übersichtsdiagramm
-* die Begründung dieser Zerlegung
-* Blackbox-Beschreibungen der hier enthaltenen Bausteine.
-Dafür haben Sie verschiedene Optionen:
-
-** in _einer_ Tabelle, gibt einen kurzen und pragmatischen Überblick über die enthaltenen Bausteine sowie deren Schnittstellen.
-** als Liste von Blackbox-Beschreibungen der Bausteine, gemäß dem Blackbox-Template (siehe unten).
-Diese Liste können Sie, je nach Werkzeug, etwa in Form von Unterkapiteln (Text), Unter-Seiten (Wiki) oder geschachtelten Elementen (Modellierungswerkzeug) darstellen.
-
-* (optional:) wichtige Schnittstellen, die nicht bereits im Blackbox-Template eines der Bausteine erläutert werden, aber für das Verständnis der Whitebox von zentraler Bedeutung sind.
-Aufgrund der vielfältigen Möglichkeiten oder Ausprägungen von Schnittstellen geben wir hierzu kein weiteres Template vor.
-Im schlimmsten Fall müssen Sie Syntax, Semantik, Protokolle, Fehlerverhalten, Restriktionen, Versionen, Qualitätseigenschaften, notwendige Kompatibilitäten und vieles mehr spezifizieren oder beschreiben.
-Im besten Fall kommen Sie mit Beispielen oder einfachen Signaturen zurecht.
-****
-
-_**<Übersichtsdiagramm>**_
-
-Begründung:: _<Erläuternder Text>_
-
-Enthaltene Bausteine:: _<Beschreibung der enthaltenen Bausteine (Blackboxen)>_
-
-Wichtige Schnittstellen:: _<Beschreibung wichtiger Schnittstellen>_
-
-[role="arc42help"]
-****
-Hier folgen jetzt Erläuterungen zu Blackboxen der Ebene 1.
-
-Falls Sie die tabellarische Beschreibung wählen, so werden Blackboxen darin nur mit Name und Verantwortung nach folgendem Muster beschrieben:
-
-[cols="1,2" options="header"]
+.Enthaltene Blackboxes
 |===
-| **Name** | **Verantwortung**
-| _<Blackbox 1>_ | _<Text>_
-| _<Blackbox 2>_ | _<Text>_
+|Baustein |Beschreibung
+
+|Quiz-API
+|Das Backend erledigt die Abwicklung der Fragen und die Berechnung des Punktestands für jeden Spieler.
+
+|Frontend
+|Das Frontend zeigt das Quiz mit den Frage-Antwort-Paaren und verstreichender Zeit an. Es nimmt den User-Input entgegen und sendet diesen zur Verarbeitung an das Quiz-API.
 |===
 
-Falls Sie die ausführliche Liste von Blackbox-Beschreibungen wählen, beschreiben Sie jede wichtige Blackbox in einem eigenen Blackbox-Template.
-Dessen Überschrift ist jeweils der Namen dieser Blackbox.
-****
-
-==== <Name Blackbox 1>
-
-[role="arc42help"]
-****
-Beschreiben Sie die <Blackbox 1> anhand des folgenden Blackbox-Templates:
-
-* Zweck/Verantwortung
-* Schnittstelle(n), sofern diese nicht als eigenständige Beschreibungen herausgezogen sind.
-Hierzu gehören eventuell auch Qualitäts- und Leistungsmerkmale dieser Schnittstelle.
-* (Optional) Qualitäts-/Leistungsmerkmale der Blackbox, beispielsweise Verfügbarkeit, Laufzeitverhalten o. Ä.
-* (Optional) Ablageort/Datei(en)
-* (Optional) Erfüllte Anforderungen, falls Sie Traceability zu Anforderungen benötigen.
-* (Optional) Offene Punkte/Probleme/Risiken
-****
-
-_<Zweck/Verantwortung>_
-
-_<Schnittstelle(n)>_
-
-_<(Optional) Qualitäts-/Leistungsmerkmale>_
-
-_<(Optional) Ablageort/Datei(en)>_
-
-_<(Optional) Erfüllte Anforderungen>_
-
-_<(optional) Offene Punkte/Probleme/Risiken>_
-
-==== <Name Blackbox 2>
-
-_<Blackbox-Template>_
-
-==== <Name Blackbox n>
-
-_<Blackbox-Template>_
+=== Bausteinansicht Level 2
+==== Whitebox Quiz-API
 
 
-==== <Name Schnittstelle 1>
+[plantuml, target=diagram-component, format=png]
+@startuml
+[Frontend]
+component "Quiz API"{
+    portIn "User Input" as ui
+    portOut "UI" as qu
+    portOut "DB" as db
+    [MessagingService]
+    [QuizRepository]
+    [QuizEngine]
+    [QuizController]
 
-...
+    QuizEngine <..> MessagingService :send/receive Updates
+    MessagingService <.. ui
+    QuizController <.. ui : start quiz
+    QuizController ..> QuizEngine: triggers
+    MessagingService ..> qu
+    QuizEngine ..> QuizRepository : fetch Questions
+    QuizRepository ..> db
+}
 
-==== <Name Schnittstelle m>
+Frontend ..> ui
+Frontend <.. qu
+@enduml
 
-=== Ebene 2
+.Enthaltene Blackboxes
+|===
+|Baustein |Beschreibung
 
-[role="arc42help"]
-****
-Beschreiben Sie den inneren Aufbau (einiger) Bausteine aus Ebene 1 als Whitebox.
+|QuizController
+|Nimmt Request zum Start des Quiz entgegen und triggert daraufhin die QuizEnging das Quiz zu starten.
 
-Welche Bausteine Ihres Systems Sie hier beschreiben, müssen Sie selbst entscheiden.
-Bitte stellen Sie dabei Relevanz vor Vollständigkeit.
-Skizzieren Sie wichtige, überraschende, riskante, komplexe oder besonders volatile Bausteine.
-Normale, einfache oder standardisierte Teile sollten Sie weglassen.
-****
+|QuizEngine
+|Führt das Quiz durch und berechnet den Punktestand. Nutzt das QuizRepository um sich den Quiz-Katalog aus der Datenbank zu laden. Über den MessagingService sendet es die Frage-Antwort-Paare an das Frontend
 
-==== Whitebox _<Baustein 1>_
+|MessagingService
+|Nimmt die Messages von dem Frontend entgegen und leitet sie an die QuizEngine weiter. Außerdem sendet es die Messages von der QuizEngine an das Frontend.
 
-[role="arc42help"]
-****
-...zeigt das Innenleben von _Baustein 1_.
-****
+|QuizRepository
+|Interagiert mit der Datenbank.
+|===
 
-_<Whitebox-Template>_
+=== Bausteinansicht Level 3
+==== Whitebox QuizEngine
 
-==== Whitebox _<Baustein 2>_
+[plantuml, target=diagram-component, format=png]
+@startuml
+component QuizEngine {
+    class QuizProxy {
+        - quiz : Map<roomId:int, quiz:Quiz> [0..*]
+        + sendNewQuestion(question: Question)
+        + sendResults(Map<nickname:String, score:int>, isEnd: boolean)
+        + getUserInput(nickname:String, answerId: int)
+    }
+    class QuizProcessor {
+        - questions: Question [0..*]
+        - currentQuestion : Question
+        - participants: Participant [0..*]
+        + startQuiz()
+        + addParticipantAnswer(nickname:String, answerId)
+        + addParticipant(nickname: String)
+    }
+    class Question{
+        - question : String
+        - image : byte
+        - answer : Map<answerId: int, answer:String> [0..*]
+        - answerTime : int
+        + getter()
+        + setter()
+    }
+    class Participant{
+        - nickname: String
+        - score: int
+        + getter()
+        + setter()
+    }
 
-_<Whitebox-Template>_
+    QuizProcessor "*" o--o "1" QuizProxy : creates <
+    Question "*" --o "1" QuizProcessor : constructor injection <
+    Participant "*" --o "1" QuizProcessor : creates <
+}
+@enduml
 
-...
+Dieser Baustein handelt den Quiz-Prozess ab. Die QuizEngine instanziiert bei einer Raumeröffnung einen QuizProcessor. Dabei befüllt es den QuizProcessor mit einer Liste an Questions.
 
-==== Whitebox _<Baustein m>_
+.Enthaltene Blackboxes
+|===
+|Baustein |Beschreibung
 
-_<Whitebox-Template>_
+|Participant
+|Datenklasse für einen Mitspieler.
 
-=== Ebene 3
+|Question
+|Datenklasse für die Frage-Antwort-Paare.
 
-[role="arc42help"]
-****
-Beschreiben Sie den inneren Aufbau (einiger) Bausteine aus Ebene 2 als Whitebox.
+|QuizProcessor
+|Handelt das Quiz ab und berechnet bei einem UserInput den Punktestand.
 
-Bei tieferen Gliederungen der Architektur kopieren Sie diesen Teil von arc42 für die weiteren Ebenen.
-****
-
-==== Whitebox <_Baustein x.1_>
-
-[role="arc42help"]
-****
-...zeigt das Innenleben von _Baustein x.1_.
-****
-
-_<Whitebox-Template>_
-
-==== Whitebox <_Baustein x.2_>
-
-_<Whitebox-Template>_
-
-==== Whitebox <_Baustein y.1_>
-
-_<Whitebox-Template>_
+|QuizProxy
+|Proxy für alle Quiz-Räume. Delegiert die Updates von und zu den Usern.
+|===

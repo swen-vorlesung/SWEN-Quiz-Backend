@@ -1,72 +1,78 @@
 [[section-system-scope-and-context]]
 == Kontextabgrenzung
-
-[role="arc42help"]
-****
-.Inhalt
-Die Kontextabgrenzung grenzt das System von allen Kommunikationsbeziehungen (Nachbarsystemen und Benutzerrollen) ab.
-Sie legt damit die externen Schnittstellen fest.
-
-Differenzieren Sie fachliche (fachliche Ein- und Ausgaben) und technische Kontexte (Kanäle, Protokolle, Hardware), falls nötig.
-
-.Motivation
-Die fachlichen und technischen Schnittstellen zur Kommunikation gehören zu den kritischsten Aspekten eines Systems.
-Stellen Sie sicher, dass Sie diese komplett verstanden haben.
-
-.Form
-Verschiedene Optionen:
-
-* Diverse Kontextdiagramme
-* Listen von Kommunikationsbeziehungen mit deren Schnittstellen
-
-
-.Weiterführende Informationen
-
-Siehe https://docs.arc42.org/section-3/[Kontextabgrenzung] in der online-Dokumentation (auf Englisch!).
-
-****
-
 === Fachlicher Kontext
 
-[role="arc42help"]
-****
-.Inhalt
-Festlegung *aller* Kommunikationsbeziehungen (Nutzer, IT-Systeme, ...) mit Erklärung der fachlichen Ein- und Ausgabedaten oder Schnittstellen.
-Zusätzlich (bei Bedarf) fachliche Datenformate oder Protokolle der Kommunikation mit den Nachbarsystemen.
+[plantuml, target=diagram-component, format=png]
+@startuml
+[Frontend] as frontend
+[Quiz API] as api
+:Dozent:
+:Student:
+:Build System: as build
 
-.Motivation
-Alle Beteiligten müssen verstehen, welche fachlichen Informationen mit der Umwelt ausgetauscht werden.
+build --> api
+build --> frontend
+api <--> frontend : interagiert
+Dozent --> frontend : startet Quiz
+Student --> frontend : beantwortet Fragen
+@enduml
 
-.Form
-Alle Diagrammarten, die das System als Blackbox darstellen und die fachlichen Schnittstellen zu den Nachbarsystemen beschreiben.
+.Kontext
+|===
+|Nachbar |Beschreibung
 
-Alternativ oder ergänzend können Sie eine Tabelle verwenden.
-Der Titel gibt den Namen Ihres Systems wieder; die drei Spalten sind: Kommunikationsbeziehung, Eingabe, Ausgabe.
-****
+|Dozent
+|Dozent erstellt Quiz-Kataloge und startet ein Quiz.
 
-**<Diagramm und/oder Tabelle>**
+|Student
+|Ein Student beantwortet die Fragen eines offenen Quiz.
 
-**<optional: Erläuterung der externen fachlichen Schnittstellen>**
+|Build System
+|Das Build System baut und deployed die Anwendung.
+
+|Quiz API
+|Die Quiz API ist das Backend und übernimmt das Spielsystem.
+
+|Frontend
+|Das Frontend ist die Schnittstelle zwischen den Benutzern und dem Backend.
+|===
 
 === Technischer Kontext
 
-[role="arc42help"]
-****
-.Inhalt
-Technische Schnittstellen (Kanäle, Übertragungsmedien) zwischen dem System und seiner Umwelt.
-Zusätzlich eine Erklärung (_mapping_), welche fachlichen Ein- und Ausgaben über welche technischen Kanäle fließen.
+[plantuml, target=diagram-component, format=png]
+@startuml
+node "CI/CD Pipeline" {
+    [Frontend Deployment]
+    [Quiz-API Deployment]
+    [Terraform]
+}
 
-.Motivation
-Viele Stakeholder treffen Architekturentscheidungen auf Basis der technischen Schnittstellen des Systems zu seinem Kontext.
+node "Cloud-Infrastruktur" as cloud {
+    node Container-Infrastruktur {
+        [Quiz-API]
+        [Frontend]
+    }
+    [Quiz-API] -- [Frontend]: Websocket
+    [Datenbank] -- [Quiz-API]: Datenhaltung
+}
 
-Insbesondere bei der Entwicklung von Infrastruktur oder Hardware sind diese technischen Schnittstellen durchaus entscheidend.
+[Frontend Deployment] ..> [Frontend] : <<deploy>>
+[Quiz-API Deployment] ..> [Quiz-API] : <<deploy>>
+[Terraform] ..> cloud: <<configure>>
+[Browser] -- [Frontend] : <<show>>
+@enduml
 
-.Form
-Beispielsweise UML Deployment-Diagramme mit den Kanälen zu Nachbarsystemen, begleitet von einer Tabelle, die Kanäle auf Ein-/Ausgaben abbildet.
-****
 
-**<Diagramm oder Tabelle>**
+.Kontext
+|===
+|Nachbar |Beschreibung
 
-**<optional: Erläuterung der externen technischen Schnittstellen>**
+|CI/CD Pipeline
+|Pipelines die für den Bau und Auslieferung der Infrastruktur nötig sind.
 
-**<Mapping fachliche auf technische Schnittstellen>**
+|Cloud Infrastruktur
+|Infrastruktur-Komponente, die eine Umgebung für die ausführbaren System-Komponenten und Middleware liefert.
+
+|Container Infrastruktur
+|Manager für die Laufzeitumgebung der System-Komponenten
+|===

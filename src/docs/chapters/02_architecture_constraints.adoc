@@ -1,23 +1,16 @@
 [[section-architecture-constraints]]
 == Randbedingungen
 
-[role="arc42help"]
-****
-.Inhalt
-Randbedingungen und Vorgaben, die ihre Freiheiten bezüglich Entwurf, Implementierung oder Ihres Entwicklungsprozesses einschränken.
-Diese Randbedingungen gelten manchmal organisations- oder firmenweit über die Grenzen einzelner Systeme hinweg.
+.Randbedingungen
+|===
+|ID |Beschreibung
 
-.Motivation
-Für eine tragfähige Architektur sollten Sie genau wissen, wo Ihre Freiheitsgrade bezüglich der Entwurfsentscheidungen liegen und wo Sie Randbedingungen beachten müssen.
-Sie können Randbedingungen vielleicht noch verhandeln, zunächst sind sie aber da.
+|RB-1
+|Die API muss in Java Spring entwickelt werden, da sie zusätzlich als Beispiel den Studierenden noch als Referenzprojekt dienen soll.
 
-.Form
-Einfache Tabellen der Randbedingungen mit Erläuterungen.
-Bei Bedarf unterscheiden Sie technische, organisatorische und politische Randbedingungen oder übergreifende Konventionen (beispielsweise Programmier- oder Versionierungsrichtlinien, Dokumentations- oder Namenskonvention).
+|RB-2
+|Die API soll einfach gehalten werden, damit sie von Studierenden noch schnell verstanden werden kann.
 
-
-.Weiterführende Informationen
-
-Siehe https://docs.arc42.org/section-2/[Randbedingungen] in der online-Dokumentation (auf Englisch!).
-
-****
+|RB-3
+|Das Frontend soll mit einem einfachen und leichtgewichtigen Framework geschrieben werden, um den Entwickleraufwand gering zu halten.
+|===
