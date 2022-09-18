@@ -1,4 +1,4 @@
-package de.doubleslash.quiz.engine.web.dto;
+package de.doubleslash.quiz.engine.dto;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

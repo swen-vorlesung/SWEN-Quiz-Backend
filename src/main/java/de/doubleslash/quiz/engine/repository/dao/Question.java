@@ -3,6 +3,7 @@ package de.doubleslash.quiz.engine.repository.dao;
 import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -15,7 +16,7 @@ import lombok.Data;
 
 @Data
 @Entity
-@Table(name = "QUE02_QUESTION")
+@Table(name = "QUI02_QUESTION")
 public class Question {
 
   @Id
@@ -28,7 +29,7 @@ public class Question {
 
   private byte[] image;
 
-  @OneToMany(mappedBy = "question")
+  @OneToMany(mappedBy = "question", fetch = FetchType.EAGER)
   private List<Answer> answers;
 
   @ManyToOne

@@ -3,26 +3,23 @@ package de.doubleslash.quiz.engine;
 import static de.doubleslash.quiz.engine.processor.QuizState.IDLE;
 import static de.doubleslash.quiz.engine.processor.QuizState.RUNNING;
 
+import de.doubleslash.quiz.engine.controller.QuizHandler;
+import de.doubleslash.quiz.engine.dto.Participant;
 import de.doubleslash.quiz.engine.processor.QuizProcessor;
 import de.doubleslash.quiz.engine.processor.QuizSocket;
 import de.doubleslash.quiz.engine.processor.QuizState;
 import de.doubleslash.quiz.engine.repository.QuizRepository;
-import de.doubleslash.quiz.engine.web.QuizObserver;
-import de.doubleslash.quiz.engine.web.QuizReceiver;
 import de.doubleslash.quiz.engine.web.QuizSender;
-import de.doubleslash.quiz.engine.web.dto.Participant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class QuizProxy implements QuizObserver, QuizSocket {
-
-  private final QuizReceiver receiver;
+public class QuizAdapter implements QuizHandler, QuizSocket {
 
   private final QuizSender sender;
 
@@ -30,24 +27,36 @@ public class QuizProxy implements QuizObserver, QuizSocket {
 
   private final List<QuizProcessor> quizes = new ArrayList<>();
 
-  @PostConstruct
-  public void register() {
-    receiver.register(this);
-  }
-
   @Override
-  public boolean newQuiz(Long quizId, String sessionId) {
+  public String newQuiz(Long quizId) {
+    var sessionId = RandomStringUtils.randomAlphanumeric(5);
     return repo.findById(quizId)
-        .map(q -> quizes.add(new QuizProcessor(q.getQuestions(), sessionId)))
-        .orElse(false);
+        .map(q -> {
+          quizes.add(new QuizProcessor(q.getQuestions(), sessionId));
+          return sessionId;
+        })
+        .orElse("");
   }
 
   @Override
   public boolean addParticipant(String sessionId, String nickName) {
     return findIdleQuizProcessor(sessionId)
-        .map(processor -> processor.addParticipant(nickName))
+        .map(processor ->
+        {
+          processor.addParticipant(nickName);
+          sender.updateParticipantsToQuiz(sessionId, processor.getParticipants());
+          return true;
+        })
         .orElse(false);
   }
+
+  @Override
+  public void notifyQuizWithAllParticipants(String sessionId) {
+    findIdleQuizProcessor(sessionId)
+        .ifPresent(processor ->
+            sender.updateParticipantsToQuiz(sessionId, processor.getParticipants()));
+  }
+
 
   @Override
   public boolean startQuiz(String sessionId) {
@@ -82,8 +91,8 @@ public class QuizProxy implements QuizObserver, QuizSocket {
   }
 
   @Override
-  public void sendResults(List<Participant> participants, boolean isFinished) {
-    sender.sendResultsToQuiz(participants, isFinished);
+  public void sendResults(String sessionId, List<Participant> participants, boolean isFinished) {
+    sender.sendResultsToQuiz(sessionId, participants, isFinished);
   }
 
   private Optional<QuizProcessor> findIdleQuizProcessor(String sessionId) {

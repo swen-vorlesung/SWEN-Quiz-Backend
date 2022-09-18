@@ -12,7 +12,7 @@ import lombok.Data;
 
 @Data
 @Entity
-@Table(name = "QUE03_ANSWER")
+@Table(name = "QUI03_ANSWER")
 public class Answer {
 
   @Id
@@ -23,6 +23,8 @@ public class Answer {
   @ManyToOne
   @JoinColumn(name = "question_id")
   private Question question;
+
+  private String answer;
 
   private Boolean isCorrect;
 }

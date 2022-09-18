@@ -3,6 +3,7 @@ package de.doubleslash.quiz.engine.repository.dao;
 import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -12,7 +13,7 @@ import lombok.Data;
 
 @Data
 @Entity
-@Table(name = "QUE01_QUIZ")
+@Table(name = "QUI01_QUIZ")
 public class Quiz {
 
   @Id
@@ -20,6 +21,8 @@ public class Quiz {
   @Column(name = "id", nullable = false)
   private Long id;
 
-  @OneToMany(mappedBy = "quiz")
+  @OneToMany(mappedBy = "quiz", fetch = FetchType.EAGER)
   private List<Question> questions;
+
+  private String name;
 }

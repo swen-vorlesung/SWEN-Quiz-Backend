@@ -1,48 +1,50 @@
 package de.doubleslash.quiz.engine.controller;
 
-import de.doubleslash.quiz.engine.web.QuizObserver;
+import de.doubleslash.quiz.engine.dto.Quiz;
+import de.doubleslash.quiz.engine.dto.SessionId;
+import de.doubleslash.quiz.engine.repository.QuizRepository;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
+@Validated
 @RestController
-@RequestMapping("/sessions/{sessionId}")
+@RequestMapping("/quizzes")
 @RequiredArgsConstructor
 public class QuizController {
 
-  private final QuizObserver quizObserver;
+  private final QuizHandler quizHandler;
 
-  @PostMapping
-  public HttpStatus createNewQuiz(@RequestBody Long quizId,
-      @PathVariable(value = "sessionId") String sessionId) {
-    var success = quizObserver.newQuiz(quizId, sessionId);
-    if (success) {
-      return HttpStatus.CREATED;
-    }
-    return HttpStatus.NOT_FOUND;
+  private final QuizRepository repo;
+
+  @GetMapping
+  public List<Quiz> getAllQuiz() {
+    return StreamSupport.stream(repo.findAll().spliterator(), false)
+        .map(q -> Quiz.builder()
+            .name(q.getName())
+            .id(q.getId())
+            .build())
+        .collect(Collectors.toList());
   }
 
-  @PostMapping("/quiz/start")
-  public HttpStatus startQuiz(@PathVariable(value = "sessionId") String sessionId) {
-    var success = quizObserver.startQuiz(sessionId);
-    if (success) {
-      return HttpStatus.ACCEPTED;
+  @PostMapping("/{quizId}")
+  public ResponseEntity<SessionId> createNewQuiz(@PathVariable(value = "quizId") Long quizId) {
+    var sessionId = quizHandler.newQuiz(quizId);
+    if (StringUtils.hasText(sessionId)) {
+      return new ResponseEntity<>(new SessionId(sessionId), HttpStatus.CREATED);
     }
-    return HttpStatus.BAD_REQUEST;
-  }
-
-  @PostMapping("/quiz/next")
-  public HttpStatus startNextQuestion(@PathVariable(value = "sessionId") String sessionId) {
-    var success = quizObserver.startNewQuestion(sessionId);
-    if (success) {
-      return HttpStatus.ACCEPTED;
-    }
-    return HttpStatus.BAD_REQUEST;
+    return new ResponseEntity<>(HttpStatus.NOT_FOUND);
   }
 }

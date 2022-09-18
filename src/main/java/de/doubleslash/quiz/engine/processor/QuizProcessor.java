@@ -7,7 +7,7 @@ import static de.doubleslash.quiz.engine.processor.QuizState.RUNNING;
 import de.doubleslash.quiz.engine.repository.dao.Question;
 import de.doubleslash.quiz.engine.score.ScoreCalculator;
 import de.doubleslash.quiz.engine.score.SimpleScoreCalculator;
-import de.doubleslash.quiz.engine.web.dto.Participant;
+import de.doubleslash.quiz.engine.dto.Participant;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -27,6 +27,7 @@ public class QuizProcessor {
 
   private final ScoreCalculator calc = new SimpleScoreCalculator();
 
+  @Getter
   private final List<Participant> participants = new ArrayList<>();
 
   @Getter
@@ -91,7 +92,7 @@ public class QuizProcessor {
 
   private void sendResults(boolean isFinished) {
     waitingForAnswers = false;
-    socket.sendResults(participants, isFinished);
+    socket.sendResults(sessionId, participants, isFinished);
   }
 
   public void addParticipantAnswer(String nickname, Long answerId) {

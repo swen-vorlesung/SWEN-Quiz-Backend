@@ -1,10 +1,12 @@
-package de.doubleslash.quiz.engine.web;
+package de.doubleslash.quiz.engine.controller;
 
-public interface QuizObserver {
+public interface QuizHandler {
 
-  boolean newQuiz(Long quizId, String sessionId);
+  String newQuiz(Long quizId);
 
   boolean addParticipant(String sessionId, String nickName);
+
+  void notifyQuizWithAllParticipants(String sessionId);
 
   boolean startQuiz(String sessionId);
 
