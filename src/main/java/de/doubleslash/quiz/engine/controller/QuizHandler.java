@@ -13,4 +13,6 @@ public interface QuizHandler {
   boolean addParticipantInput(String sessionId, String nickname, Long answerId);
 
   boolean startNewQuestion(String sessionId);
+
+  void notifyQuizStarted(String sessionId);
 }

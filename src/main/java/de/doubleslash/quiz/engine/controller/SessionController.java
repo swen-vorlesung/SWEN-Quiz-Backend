@@ -18,20 +18,16 @@ public class SessionController {
 
   private final QuizHandler quizHandler;
 
-  @PostMapping("/sessions/{sessionId}/quiz/start")
+  @PostMapping("/{sessionId}/quiz/start")
   public HttpStatus startQuiz(@PathVariable(value = "sessionId") String sessionId) {
     var success = quizHandler.startQuiz(sessionId);
     if (success) {
-      var started = quizHandler.startNewQuestion(sessionId);
-      if (started) {
-        return HttpStatus.ACCEPTED;
-      }
-      return HttpStatus.BAD_REQUEST;
+      return HttpStatus.ACCEPTED;
     }
     return HttpStatus.BAD_REQUEST;
   }
 
-  @PostMapping("/sessions/{sessionId}/quiz/next")
+  @PostMapping("/{sessionId}/quiz/next")
   public HttpStatus startNextQuestion(@PathVariable(value = "sessionId") String sessionId) {
     var success = quizHandler.startNewQuestion(sessionId);
     if (success) {

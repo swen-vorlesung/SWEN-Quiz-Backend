@@ -1,14 +1,17 @@
 package de.doubleslash.quiz.engine.web;
 
 import de.doubleslash.quiz.engine.dto.Participant;
-import de.doubleslash.quiz.engine.dto.Results;
+import de.doubleslash.quiz.engine.processor.QuizState;
 import de.doubleslash.quiz.engine.repository.dao.Question;
+import de.doubleslash.quiz.engine.web.events.NewQuestionEvent;
+import de.doubleslash.quiz.engine.web.events.ParticipantsUpdatedEvent;
+import de.doubleslash.quiz.engine.web.events.QuizEvent;
+import de.doubleslash.quiz.engine.web.events.QuizStateUpdatedEvent;
+import de.doubleslash.quiz.engine.web.events.ResultsUpdatedEvent;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 
 @Controller
 @RequiredArgsConstructor
@@ -16,19 +19,23 @@ public class QuizSender {
 
   private final SimpMessagingTemplate simpMessagingTemplate;
 
-  public void sendNewQuestionToQuiz(String sessionId, Question question) {
-    simpMessagingTemplate.convertAndSend("/quiz/" + sessionId, question);
+  public void sendNewQuestionEvent(String sessionId, Question question) {
+    sendEvent(sessionId, new NewQuestionEvent(question));
   }
 
-  public void updateParticipantsToQuiz(String sessionId, List<Participant> participants) {
-    simpMessagingTemplate.convertAndSend("/sessions/" + sessionId + "/waitingroom", participants);
+  public void sendParticipantsUpdatedEvent(String sessionId, List<Participant> participants) {
+    sendEvent(sessionId, new ParticipantsUpdatedEvent(participants));
   }
 
-  public void sendResultsToQuiz(String sessionId, List<Participant> participants, boolean isFinished) {
-    simpMessagingTemplate.convertAndSend("/results/" + sessionId,
-        Results.builder()
-            .participants(participants)
-            .isFinished(isFinished)
-            .build());
+  public void sendResultsUpdatedEvent(String sessionId, List<Participant> participants) {
+    sendEvent(sessionId, new ResultsUpdatedEvent(participants));
+  }
+
+  public void sendQuizStateUpdatedEvent(String sessionId, QuizState state) {
+    sendEvent(sessionId, new QuizStateUpdatedEvent(state));
+  }
+
+  private void sendEvent(String sessionId, QuizEvent event) {
+    simpMessagingTemplate.convertAndSend("/sessions/" + sessionId, event);
   }
 }

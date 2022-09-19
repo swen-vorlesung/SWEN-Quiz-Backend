@@ -11,6 +11,10 @@ import org.springframework.web.filter.CorsFilter;
 @SpringBootApplication
 public class QuizApplication {
 
+  public static void main(String[] args) {
+    SpringApplication.run(QuizApplication.class, args);
+  }
+
   @Bean
   public CorsFilter corsFilter() {
     final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -21,9 +25,5 @@ public class QuizApplication {
     config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "OPTIONS", "DELETE", "PATCH"));
     source.registerCorsConfiguration("/**", config);
     return new CorsFilter(source);
-  }
-
-  public static void main(String[] args) {
-    SpringApplication.run(QuizApplication.class, args);
   }
 }

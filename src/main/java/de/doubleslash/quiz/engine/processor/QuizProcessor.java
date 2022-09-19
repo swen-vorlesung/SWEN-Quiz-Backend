@@ -4,10 +4,10 @@ import static de.doubleslash.quiz.engine.processor.QuizState.FINISHED;
 import static de.doubleslash.quiz.engine.processor.QuizState.IDLE;
 import static de.doubleslash.quiz.engine.processor.QuizState.RUNNING;
 
+import de.doubleslash.quiz.engine.dto.Participant;
 import de.doubleslash.quiz.engine.repository.dao.Question;
 import de.doubleslash.quiz.engine.score.ScoreCalculator;
 import de.doubleslash.quiz.engine.score.SimpleScoreCalculator;
-import de.doubleslash.quiz.engine.dto.Participant;
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;

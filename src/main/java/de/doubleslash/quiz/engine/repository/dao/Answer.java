@@ -1,5 +1,6 @@
 package de.doubleslash.quiz.engine.repository.dao;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -22,6 +23,7 @@ public class Answer {
 
   @ManyToOne
   @JoinColumn(name = "question_id")
+  @JsonBackReference
   private Question question;
 
   private String answer;

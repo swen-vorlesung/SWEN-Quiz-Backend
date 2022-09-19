@@ -1,5 +1,7 @@
 package de.doubleslash.quiz.engine.repository.dao;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -30,10 +32,12 @@ public class Question {
   private byte[] image;
 
   @OneToMany(mappedBy = "question", fetch = FetchType.EAGER)
+  @JsonManagedReference
   private List<Answer> answers;
 
   @ManyToOne
   @JoinColumn(name = "quiz_id")
+  @JsonBackReference
   private Quiz quiz;
 
   /**

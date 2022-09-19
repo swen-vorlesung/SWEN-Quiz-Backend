@@ -1,5 +1,6 @@
 package de.doubleslash.quiz.engine;
 
+import static de.doubleslash.quiz.engine.processor.QuizState.FINISHED;
 import static de.doubleslash.quiz.engine.processor.QuizState.IDLE;
 import static de.doubleslash.quiz.engine.processor.QuizState.RUNNING;
 
@@ -44,7 +45,7 @@ public class QuizAdapter implements QuizHandler, QuizSocket {
         .map(processor ->
         {
           processor.addParticipant(nickName);
-          sender.updateParticipantsToQuiz(sessionId, processor.getParticipants());
+          sender.sendParticipantsUpdatedEvent(sessionId, processor.getParticipants());
           return true;
         })
         .orElse(false);
@@ -54,7 +55,7 @@ public class QuizAdapter implements QuizHandler, QuizSocket {
   public void notifyQuizWithAllParticipants(String sessionId) {
     findIdleQuizProcessor(sessionId)
         .ifPresent(processor ->
-            sender.updateParticipantsToQuiz(sessionId, processor.getParticipants()));
+            sender.sendParticipantsUpdatedEvent(sessionId, processor.getParticipants()));
   }
 
 
@@ -63,6 +64,8 @@ public class QuizAdapter implements QuizHandler, QuizSocket {
     return findIdleQuizProcessor(sessionId)
         .map(q -> {
           q.startQuiz(this);
+          notifyQuizStarted(sessionId);
+          startNewQuestion(sessionId);
           return true;
         })
         .orElse(false);
@@ -84,15 +87,23 @@ public class QuizAdapter implements QuizHandler, QuizSocket {
         .map(QuizProcessor::getNextQuestion)
         .flatMap(q -> q)
         .map(q -> {
-          sender.sendNewQuestionToQuiz(sessionId, q);
+          sender.sendNewQuestionEvent(sessionId, q);
           return true;
         })
         .orElse(false);
   }
 
   @Override
+  public void notifyQuizStarted(String sessionId) {
+    sender.sendQuizStateUpdatedEvent(sessionId, RUNNING);
+  }
+
+  @Override
   public void sendResults(String sessionId, List<Participant> participants, boolean isFinished) {
-    sender.sendResultsToQuiz(sessionId, participants, isFinished);
+    sender.sendResultsUpdatedEvent(sessionId, participants);
+    if (isFinished) {
+      sender.sendQuizStateUpdatedEvent(sessionId, FINISHED);
+    }
   }
 
   private Optional<QuizProcessor> findIdleQuizProcessor(String sessionId) {
