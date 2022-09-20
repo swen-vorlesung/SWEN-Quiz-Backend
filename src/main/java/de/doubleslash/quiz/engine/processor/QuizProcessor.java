@@ -4,6 +4,7 @@ import static de.doubleslash.quiz.engine.processor.QuizState.FINISHED;
 import static de.doubleslash.quiz.engine.processor.QuizState.IDLE;
 import static de.doubleslash.quiz.engine.processor.QuizState.RUNNING;
 
+import de.doubleslash.quiz.engine.dto.Answers;
 import de.doubleslash.quiz.engine.dto.Participant;
 import de.doubleslash.quiz.engine.repository.dao.Question;
 import de.doubleslash.quiz.engine.score.ScoreCalculator;
@@ -95,17 +96,19 @@ public class QuizProcessor {
     socket.sendResults(sessionId, participants, isFinished);
   }
 
-  public void addParticipantAnswer(String nickname, Long answerId) {
+  public void addParticipantAnswer(String nickname, List<Long> answerIds) {
     if (waitingForAnswers) {
       participants.stream()
           .filter(p -> p.getNickname().equals(nickname))
           .findFirst()
-          .ifPresent(p -> p.addScore(calculateScore(answerId)));
+          .ifPresent(p -> p.addScore(calculateScore(answerIds)));
     }
   }
 
-  private int calculateScore(Long answerId) {
+  private int calculateScore(List<Long> answerIds) {
     var offset = ChronoUnit.SECONDS.between(timestampOfCurrentQuestion, OffsetDateTime.now());
-    return calc.calculateScore(offset, currentQuestion.isCorrectAnswer(answerId));
+    var correctAnswers = currentQuestion.countCorrectAnswers(answerIds);
+    var wrongAnswers = answerIds.size() - correctAnswers;
+    return calc.calculateScore(offset, currentQuestion.getAnswerTime(), correctAnswers, wrongAnswers);
   }
 }

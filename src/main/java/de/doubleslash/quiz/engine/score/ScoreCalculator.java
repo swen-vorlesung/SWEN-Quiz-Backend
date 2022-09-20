@@ -2,5 +2,6 @@ package de.doubleslash.quiz.engine.score;
 
 public interface ScoreCalculator {
 
-  int calculateScore(Long offset, boolean isAnswerCorrect);
+  int calculateScore(long offset, long answerTime, int correctAnswers, int wrongAnswers);
+
 }

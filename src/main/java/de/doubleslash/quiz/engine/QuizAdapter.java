@@ -5,6 +5,8 @@ import static de.doubleslash.quiz.engine.processor.QuizState.IDLE;
 import static de.doubleslash.quiz.engine.processor.QuizState.RUNNING;
 
 import de.doubleslash.quiz.engine.controller.QuizHandler;
+import de.doubleslash.quiz.engine.dto.AnswerView;
+import de.doubleslash.quiz.engine.dto.Answers;
 import de.doubleslash.quiz.engine.dto.Participant;
 import de.doubleslash.quiz.engine.processor.QuizProcessor;
 import de.doubleslash.quiz.engine.processor.QuizSocket;
@@ -14,6 +16,7 @@ import de.doubleslash.quiz.engine.web.QuizSender;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.stereotype.Component;
@@ -72,10 +75,12 @@ public class QuizAdapter implements QuizHandler, QuizSocket {
   }
 
   @Override
-  public boolean addParticipantInput(String sessionId, String nickname, Long answerId) {
+  public boolean addParticipantInput(String sessionId, String nickname, Answers answerId) {
     return findRunningQuizProcessor(sessionId)
         .map(q -> {
-          q.addParticipantAnswer(nickname, answerId);
+          q.addParticipantAnswer(nickname, answerId.getAnswers().stream()
+              .map(AnswerView::getId)
+              .collect(Collectors.toList()));
           return true;
         })
         .orElse(false);

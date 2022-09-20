@@ -1,5 +1,7 @@
 package de.doubleslash.quiz.engine.controller;
 
+import de.doubleslash.quiz.engine.dto.Answers;
+
 public interface QuizHandler {
 
   String newQuiz(Long quizId);
@@ -10,7 +12,7 @@ public interface QuizHandler {
 
   boolean startQuiz(String sessionId);
 
-  boolean addParticipantInput(String sessionId, String nickname, Long answerId);
+  boolean addParticipantInput(String sessionId, String nickname, Answers answerId);
 
   boolean startNewQuestion(String sessionId);
 

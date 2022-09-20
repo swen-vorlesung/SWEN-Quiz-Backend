@@ -9,9 +9,9 @@ public class Participant {
 
   private final String nickname;
 
-  private final int score = 0;
+  private int score = 0;
 
   public void addScore(int score) {
-    score += score;
+    this.score += score;
   }
 }

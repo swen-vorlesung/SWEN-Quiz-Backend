@@ -47,11 +47,27 @@ public class Question {
   private Long answerTime;
 
   @Transient
-  public boolean isCorrectAnswer(Long answerId) {
-    return answers.stream()
-        .filter(a -> a.getId().equals(answerId))
-        .map(Answer::getIsCorrect)
-        .findFirst()
-        .orElse(Boolean.FALSE);
+  public int countCorrectAnswers(List<Long> answerIds) {
+    var correctAnswerCount = 0;
+    for (Long answerId : answerIds) {
+
+      var isCorrect = answers.stream()
+          .filter(a -> a.getId().equals(answerId))
+          .map(Answer::getIsCorrect)
+          .findFirst()
+          .orElse(Boolean.FALSE);
+
+      if (Boolean.TRUE.equals(isCorrect)) {
+        correctAnswerCount++;
+      }
+    }
+    return correctAnswerCount;
+  }
+
+  @Transient
+  public int getTotalAmaountOfCorrectAnswers() {
+    return (int) answers.stream()
+        .filter(Answer::getIsCorrect)
+        .count();
   }
 }
