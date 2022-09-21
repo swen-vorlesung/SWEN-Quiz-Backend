@@ -34,7 +34,7 @@ public class QuizAdapter implements QuizHandler, QuizSocket {
   @Override
   public String newQuiz(Long quizId) {
     var sessionId = RandomStringUtils.randomAlphanumeric(5);
-    return repo.findById(quizId)
+    return repo.findDistinctById(quizId)
         .map(q -> {
           quizes.add(new QuizProcessor(q.getQuestions(), sessionId));
           return sessionId;
