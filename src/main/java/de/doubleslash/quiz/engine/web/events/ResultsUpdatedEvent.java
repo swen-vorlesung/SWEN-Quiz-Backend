@@ -10,4 +10,6 @@ import lombok.Getter;
 public class ResultsUpdatedEvent implements QuizEvent {
 
   private List<Participant> scores;
+
+  private boolean isFinished;
 }

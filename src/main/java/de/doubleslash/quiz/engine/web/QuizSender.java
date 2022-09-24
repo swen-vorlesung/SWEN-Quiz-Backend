@@ -27,8 +27,8 @@ public class QuizSender {
     sendEvent(sessionId, new ParticipantsUpdatedEvent(participants));
   }
 
-  public void sendResultsUpdatedEvent(String sessionId, List<Participant> participants) {
-    sendEvent(sessionId, new ResultsUpdatedEvent(participants));
+  public void sendResultsUpdatedEvent(String sessionId, List<Participant> participants, boolean isFinished) {
+    sendEvent(sessionId, new ResultsUpdatedEvent(participants, isFinished));
   }
 
   public void sendQuizStateUpdatedEvent(String sessionId, QuizState state) {

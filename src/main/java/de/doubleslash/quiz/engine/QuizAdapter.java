@@ -105,7 +105,7 @@ public class QuizAdapter implements QuizHandler, QuizSocket {
 
   @Override
   public void sendResults(String sessionId, List<Participant> participants, boolean isFinished) {
-    sender.sendResultsUpdatedEvent(sessionId, participants);
+    sender.sendResultsUpdatedEvent(sessionId, participants, isFinished);
     if (isFinished) {
       sender.sendQuizStateUpdatedEvent(sessionId, FINISHED);
     }
