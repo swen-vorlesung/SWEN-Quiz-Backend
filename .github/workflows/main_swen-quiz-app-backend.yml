@@ -24,10 +24,10 @@ jobs:
       - name: Build with Maven
         run: mvn clean install
         env:
-          KEY_VAULT_CLIENT_ID: ${{ KEY_VAULT_CLIENT_ID }}
-          KEY_VAULT_CLIENT_SECRET: ${{ KEY_VAULT_CLIENT_SECRET }}
-          KEY_VAULT_ENDPOINT : ${{ KEY_VAULT_ENDPOINT }}
-          KEY_VAULT_TENANT_ID: ${{ KEY_VAULT_TENANT_ID }}
+          KEY_VAULT_CLIENT_ID: ${{ secrets.KEY_VAULT_CLIENT_ID }}
+          KEY_VAULT_CLIENT_SECRET: ${{ secrets.KEY_VAULT_CLIENT_SECRET }}
+          KEY_VAULT_ENDPOINT : ${{ secrets.KEY_VAULT_ENDPOINT }}
+          KEY_VAULT_TENANT_ID: ${{ secrets.KEY_VAULT_TENANT_ID }}
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v2
