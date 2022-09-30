@@ -45,8 +45,9 @@ jobs:
         password: ${{ secrets.AzureAppService_ContainerPassword_0480738b04974af292d1ae1050b05df9 }}
 
     - name: Build and push container image to registry
-      uses: docker/build-push-action@v2
+      uses: docker/build-push-action@v3
       with:
+        context: .
         push: true
         tags: swenquizcontainer.azurecr.io/swen-quiz-backend:${{ github.sha }}
         file: ./Dockerfile
