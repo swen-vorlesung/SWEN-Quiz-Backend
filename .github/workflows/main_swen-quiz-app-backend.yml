@@ -53,19 +53,19 @@ jobs:
         env:
           DB_CONNECTION_STRING: ${{ steps.KEY_VAULT_SECRETS.quiz-db-connection-string }}
 
-    deploy:
-      runs-on: ubuntu-latest
-      needs: build
-      environment:
-        name: 'production'
-        url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: 'production'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
 
-      steps:
-        - name: Deploy to Azure Web App
-          id: deploy-to-webapp
-          uses: azure/webapps-deploy@v2
-          with:
-            app-name: 'swen-quiz-backend'
-            slot-name: 'production'
-            publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_F8BA6E9783E74530BCAA6237D039DA65 }}
-            images: 'swenquizcontainer.azurecr.io/${{ secrets.REGISTRY_USERNAME }}/swen-quiz-backend:${{ github.sha }}'
+    steps:
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'swen-quiz-backend'
+          slot-name: 'production'
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_F8BA6E9783E74530BCAA6237D039DA65 }}
+          images: 'swenquizcontainer.azurecr.io/${{ secrets.REGISTRY_USERNAME }}/swen-quiz-backend:${{ github.sha }}'
