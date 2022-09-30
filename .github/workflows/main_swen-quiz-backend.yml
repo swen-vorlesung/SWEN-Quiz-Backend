@@ -48,7 +48,7 @@ jobs:
       uses: docker/build-push-action@v2
       with:
         push: true
-        tags: swenquizcontainer.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_09ead71b42aa46a286417932192e6cb7 }}/swen-quiz-backend:${{ github.sha }}
+        tags: swenquizcontainer.azurecr.io/swen-quiz-backend:${{ github.sha }}
         file: ./Dockerfile
         build-args: DB_CONNECTION_STRING=${{ steps.KEY_VAULT_SECRETS.quiz-db-connection-string }}
 
@@ -67,4 +67,4 @@ jobs:
         app-name: 'swen-quiz-backend'
         slot-name: 'production'
         publish-profile: ${{ secrets.AzureAppService_PublishProfile_8773ba1a8b25480d9fba52e6af492329 }}
-        images: 'swenquizcontainer.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_09ead71b42aa46a286417932192e6cb7 }}/swen-quiz-backend:${{ github.sha }}'
+        images: 'swenquizcontainer.azurecr.io/swen-quiz-backend:${{ github.sha }}'
