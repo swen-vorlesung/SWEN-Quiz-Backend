@@ -34,9 +34,13 @@ jobs:
           secrets: 'quiz-db-connection-string'
         id: KEY_VAULT_SECRETS
 
-      - uses: azure/docker-login@v1
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Log in to container registry
+        uses: azure/docker-login@v1
         with:
-          login-server: swenquizcontainer.azurecr.io
+          registry: https://swenquizcontainer.azurecr.io/
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
 
@@ -44,7 +48,24 @@ jobs:
         run: |
           cd .github/scripts
           chmod u+x build-docker.sh
-          ./build-docker.sh
-          docker push swenquizcontainer.azurecr.io/swen-quiz-backend:latest
+          ./build-docker.sh ${{ github.sha }}
+          docker push swenquizcontainer.azurecr.io/swen-quiz-backend:${{ github.sha }}
         env:
           DB_CONNECTION_STRING: ${{ steps.KEY_VAULT_SECRETS.quiz-db-connection-string }}
+
+    deploy:
+      runs-on: ubuntu-latest
+      needs: build
+      environment:
+        name: 'production'
+        url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+
+      steps:
+        - name: Deploy to Azure Web App
+          id: deploy-to-webapp
+          uses: azure/webapps-deploy@v2
+          with:
+            app-name: 'swen-quiz-backend'
+            slot-name: 'production'
+            publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_F8BA6E9783E74530BCAA6237D039DA65 }}
+            images: 'swenquizcontainer.azurecr.io/${{ secrets.REGISTRY_USERNAME }}/swen-quiz-backend:${{ github.sha }}'
