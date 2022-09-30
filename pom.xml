@@ -9,7 +9,7 @@
     <relativePath/> <!-- lookup parent from repository -->
   </parent>
   <groupId>de.doubleslash</groupId>
-  <artifactId>swen-quiz-api</artifactId>
+  <artifactId>swen-quiz-backend</artifactId>
   <version>1.0.0</version>
   <name>SWEN Quiz API</name>
   <description>Backend of the Quiz App</description>
@@ -134,6 +134,23 @@
   </dependencyManagement>
 
   <build>
+    <plugins>
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>repackage</goal>
+            </goals>
+            <configuration>
+              <classifier>spring-boot</classifier>
+              <mainClass>de.doubleslash.quiz.QuizApplication</mainClass>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
   </build>
 
 </project>

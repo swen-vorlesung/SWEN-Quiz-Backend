@@ -23,36 +23,27 @@ jobs:
 
       - name: Build with Maven
         run: mvn clean install
+
+      - uses: Azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - uses: Azure/get-keyvault-secrets@v1
+        with:
+          keyvault: "swen-quiz-app-vault"
+          secrets: 'quiz-db-connection-string'
+        id: KEY_VAULT_SECRETS
+
+      - uses: azure/docker-login@v1
+        with:
+          login-server: swenquizcontainer.azurecr.io
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - name: "Deploy Image to Azure Docker Registry"
+        run: |
+          cd .github/scripts
+          ./build-docker.sh
+          docker push swenquizcontainer.azurecr.io/swen-quiz-backend:latest
         env:
-          KEY_VAULT_CLIENT_ID: ${{ secrets.KEY_VAULT_CLIENT_ID }}
-          KEY_VAULT_CLIENT_SECRET: ${{ secrets.KEY_VAULT_CLIENT_SECRET }}
-          KEY_VAULT_ENDPOINT : ${{ secrets.KEY_VAULT_ENDPOINT }}
-          KEY_VAULT_TENANT_ID: ${{ secrets.KEY_VAULT_TENANT_ID }}
-
-      - name: Upload artifact for deployment job
-        uses: actions/upload-artifact@v2
-        with:
-          name: java-app
-          path: '${{ github.workspace }}/target/*.jar'
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
-    environment:
-      name: 'Production'
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-    
-    steps:
-      - name: Download artifact from build job
-        uses: actions/download-artifact@v2
-        with:
-          name: java-app
-
-      - name: Deploy to Azure Web App
-        id: deploy-to-webapp
-        uses: azure/webapps-deploy@v2
-        with:
-          app-name: 'swen-quiz-app-backend'
-          slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_F8BA6E9783E74530BCAA6237D039DA65 }}
-          package: '*.jar'
+          DB_CONNECTION_STRING: ${{ steps.KEY_VAULT_SECRETS.quiz-db-connection-string }}
