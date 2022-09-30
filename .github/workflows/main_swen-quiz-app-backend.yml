@@ -34,13 +34,10 @@ jobs:
           secrets: 'quiz-db-connection-string'
         id: KEY_VAULT_SECRETS
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-
       - name: Log in to container registry
         uses: azure/docker-login@v1
         with:
-          registry: https://swenquizcontainer.azurecr.io/
+          login-server: swenquizcontainer.azurecr.io
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
 
@@ -68,4 +65,4 @@ jobs:
           app-name: 'swen-quiz-backend'
           slot-name: 'production'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_F8BA6E9783E74530BCAA6237D039DA65 }}
-          images: 'swenquizcontainer.azurecr.io/${{ secrets.REGISTRY_USERNAME }}/swen-quiz-backend:${{ github.sha }}'
+          images: 'swenquizcontainer.azurecr.io/swen-quiz-backend:${{ github.sha }}'
