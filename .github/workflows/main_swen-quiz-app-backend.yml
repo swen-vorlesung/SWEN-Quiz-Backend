@@ -50,14 +50,6 @@ jobs:
         env:
           DB_CONNECTION_STRING: ${{ steps.KEY_VAULT_SECRETS.quiz-db-connection-string }}
 
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
-    environment:
-      name: 'production'
-      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-
-    steps:
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v2
