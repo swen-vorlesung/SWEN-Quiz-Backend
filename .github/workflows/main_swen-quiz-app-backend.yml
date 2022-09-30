@@ -42,7 +42,9 @@ jobs:
 
       - name: "Deploy Image to Azure Docker Registry"
         run: |
+          ls -l
           cd .github/scripts
+          ls -l
           ./build-docker.sh
           docker push swenquizcontainer.azurecr.io/swen-quiz-backend:latest
         env:
