@@ -16,6 +16,24 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: Set up Java version
+      uses: actions/setup-java@v1
+      with:
+        java-version: '11'
+
+    - name: Build with Maven
+      run: mvn clean install
+
+    - uses: Azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - uses: Azure/get-keyvault-secrets@v1
+      with:
+        keyvault: "swen-quiz-app-vault"
+        secrets: 'quiz-db-connection-string'
+      id: KEY_VAULT_SECRETS
+
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v1
 
@@ -32,6 +50,7 @@ jobs:
         push: true
         tags: swenquizcontainer.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_09ead71b42aa46a286417932192e6cb7 }}/swen-quiz-backend:${{ github.sha }}
         file: ./Dockerfile
+        build-args: DB_CONNECTION_STRING=${{ steps.KEY_VAULT_SECRETS.quiz-db-connection-string }}
 
   deploy:
     runs-on: ubuntu-latest
