@@ -51,7 +51,7 @@ jobs:
         push: true
         tags: swenquizcontainer.azurecr.io/swen-quiz-backend:${{ github.sha }}
         file: ./Dockerfile
-        build-args:
+        build-args: |
           - DB_CONNECTION_STRING=${{ steps.KEY_VAULT_SECRETS.quiz-db-connection-string }}
 
   deploy:
