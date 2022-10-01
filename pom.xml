@@ -150,6 +150,36 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>com.microsoft.azure</groupId>
+        <artifactId>azure-webapp-maven-plugin</artifactId>
+        <version>2.3.0</version>
+        <configuration>
+          <schemaVersion>v2</schemaVersion>
+          <subscriptionId>71e7f9cb-60a2-4eb8-b91d-05039314155a</subscriptionId>
+          <resourceGroup>DefaultResourceGroup-DEWC</resourceGroup>
+          <appName>swen-quiz-app-backend</appName>
+          <pricingTier>B1</pricingTier>
+          <region>germanywestcentral</region>
+          <appServicePlanName>ASP-DefaultResourceGroupDEWC-991b</appServicePlanName>
+          <appServicePlanResourceGroup>DefaultResourceGroup-DEWC</appServicePlanResourceGroup>
+          <runtime>
+            <os>Linux</os>
+            <javaVersion>Java 11</javaVersion>
+            <webContainer>Java SE</webContainer>
+          </runtime>
+          <deployment>
+            <resources>
+              <resource>
+                <directory>${project.basedir}/target</directory>
+                <includes>
+                  <include>*.jar</include>
+                </includes>
+              </resource>
+            </resources>
+          </deployment>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 
