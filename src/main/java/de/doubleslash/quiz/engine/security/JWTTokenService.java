@@ -66,6 +66,12 @@ public final class JWTTokenService implements Clock, TokenService {
         .compact();
   }
 
+
+  @Override
+  public String newUserToken(String username) {
+    return newToken(Map.of("username", username));
+  }
+
   @Override
   public Map<String, String> verify(final String token) {
 

@@ -1,8 +1,9 @@
 package de.doubleslash.quiz.engine.security;
 
-import com.google.common.collect.ImmutableMap;
 import de.doubleslash.quiz.engine.repository.UserRepository;
+import de.doubleslash.quiz.engine.repository.dao.auth.Authorities;
 import de.doubleslash.quiz.engine.repository.dao.auth.User;
+import de.doubleslash.quiz.engine.security.util.PasswordEncoder;
 import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -16,14 +17,42 @@ final class TokenAuthenticationService implements UserAuthenticationService {
 
   private final TokenService tokenService;
 
-  private final UserRepository users;
+  private final UserRepository userRepository;
+
+  private final PasswordEncoder pwEncoder;
 
   @Override
   public Optional<String> login(final String username, final String password) {
-    return users
-        .findByName(username)
-        .filter(user -> Objects.equals(password, user.getPassword()))
-        .map(user -> tokenService.newToken(ImmutableMap.of("username", username)));
+
+    var encodedPassword = pwEncoder.encode(password);
+
+    return encodedPassword
+        .flatMap(s -> userRepository
+            .findByName(username)
+            .filter(user -> Objects.equals(user.getPassword(), s))
+            .map(user -> tokenService.newUserToken(username)));
+  }
+
+  @Override
+  public Optional<String> register(String username, String password) {
+
+    var encodedPassword = pwEncoder.encode(password);
+
+    if (encodedPassword.isPresent()) {
+      userRepository.save(User.builder()
+          .name(username)
+          .password(encodedPassword.get())
+          .enabled(true)
+          .authorities(Authorities.builder().authority("USER").build())
+          .build());
+
+      return userRepository
+          .findByName(username)
+          .filter(user -> Objects.equals(user.getPassword(), encodedPassword.get()))
+          .map(user -> tokenService.newUserToken(username));
+    }
+
+    return Optional.empty();
   }
 
   @Override
@@ -33,7 +62,7 @@ final class TokenAuthenticationService implements UserAuthenticationService {
     return Optional
         .of(tokenService.verify(token))
         .map(map -> map.get("username"))
-        .flatMap(users::findByName);
+        .flatMap(userRepository::findByName);
   }
 
   @Override
