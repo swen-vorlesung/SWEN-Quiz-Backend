@@ -1,8 +1,7 @@
 package de.doubleslash.quiz.engine.web.events;
 
 import de.doubleslash.quiz.engine.dto.QuestionView;
-import de.doubleslash.quiz.engine.repository.dao.Question;
-import lombok.AllArgsConstructor;
+import de.doubleslash.quiz.engine.repository.dao.quiz.Question;
 import lombok.Getter;
 
 @Getter

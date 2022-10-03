@@ -1,6 +1,6 @@
 package de.doubleslash.quiz.engine.dto;
 
-import de.doubleslash.quiz.engine.repository.dao.Question;
+import de.doubleslash.quiz.engine.repository.dao.quiz.Question;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.Getter;

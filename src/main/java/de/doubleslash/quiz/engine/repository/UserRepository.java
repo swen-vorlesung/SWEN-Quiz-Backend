@@ -1,12 +1,12 @@
 package de.doubleslash.quiz.engine.repository;
 
-import de.doubleslash.quiz.engine.repository.dao.quiz.Quiz;
+import de.doubleslash.quiz.engine.repository.dao.auth.User;
 import java.util.Optional;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface QuizRepository extends CrudRepository<Quiz, Long> {
+public interface UserRepository extends CrudRepository<User, Long> {
 
-  Optional<Quiz> findDistinctById(Long id);
+  Optional<User> findByName(String username);
 }

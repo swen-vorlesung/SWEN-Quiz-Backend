@@ -2,7 +2,7 @@ package de.doubleslash.quiz.engine.web;
 
 import de.doubleslash.quiz.engine.dto.Participant;
 import de.doubleslash.quiz.engine.processor.QuizState;
-import de.doubleslash.quiz.engine.repository.dao.Question;
+import de.doubleslash.quiz.engine.repository.dao.quiz.Question;
 import de.doubleslash.quiz.engine.web.events.NewQuestionEvent;
 import de.doubleslash.quiz.engine.web.events.ParticipantsUpdatedEvent;
 import de.doubleslash.quiz.engine.web.events.QuizEvent;

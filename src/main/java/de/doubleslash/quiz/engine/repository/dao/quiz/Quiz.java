@@ -1,4 +1,4 @@
-package de.doubleslash.quiz.engine.repository.dao;
+package de.doubleslash.quiz.engine.repository.dao.quiz;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import java.util.List;
