@@ -24,7 +24,7 @@ public class Answer {
   private Long id;
 
   @ManyToOne
-  @JoinColumn(name = "question_id")
+  @JoinColumn(name = "QUI02_ID")
   @JsonBackReference
   private Question question;
 

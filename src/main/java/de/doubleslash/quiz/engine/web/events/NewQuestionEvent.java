@@ -7,9 +7,9 @@ import lombok.Getter;
 @Getter
 public class NewQuestionEvent implements QuizEvent {
 
+  private final QuestionView question;
+
   public NewQuestionEvent(Question question) {
     this.question = new QuestionView(question);
   }
-
-  private QuestionView question;
 }

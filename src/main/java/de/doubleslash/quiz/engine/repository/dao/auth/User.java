@@ -44,7 +44,6 @@ public class User {
   private boolean enabled = true;
 
   @OneToOne(cascade = CascadeType.ALL)
-  @JoinColumn(name = "usr02_id", referencedColumnName = "id")
   private Authorities authorities;
 
   @OneToMany(mappedBy = "user", fetch = FetchType.EAGER)

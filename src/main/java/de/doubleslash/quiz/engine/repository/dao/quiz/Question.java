@@ -39,7 +39,7 @@ public class Question {
   private Set<Answer> answers;
 
   @ManyToOne
-  @JoinColumn(name = "quiz_id")
+  @JoinColumn(name = "QUI01_ID")
   @JsonBackReference
   private Quiz quiz;
 

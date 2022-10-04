@@ -35,7 +35,7 @@ public class Quiz {
   private String name;
 
   @ManyToOne
-  @JoinColumn(name = "user_id")
+  @JoinColumn(name = "USR01_ID")
   @JsonBackReference
   private User user;
 }

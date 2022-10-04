@@ -53,8 +53,8 @@ public class QuizController {
     var username = securityContext.getLoggedInUser();
     var quiz = repo.findByName(username)
         .flatMap(user -> user.getQuizzes().stream()
-        .filter(q -> q.getId().equals(quizId))
-        .findFirst());
+            .filter(q -> q.getId().equals(quizId))
+            .findFirst());
 
     if (quiz.isPresent()) {
       var sessionId = quizHandler.newQuiz(quiz.get());

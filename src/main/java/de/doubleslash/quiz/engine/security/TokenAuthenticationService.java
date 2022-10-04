@@ -1,13 +1,14 @@
 package de.doubleslash.quiz.engine.security;
 
 import de.doubleslash.quiz.engine.repository.UserRepository;
-import de.doubleslash.quiz.engine.repository.dao.auth.Authorities;
 import de.doubleslash.quiz.engine.repository.dao.auth.User;
-import de.doubleslash.quiz.engine.security.util.PasswordEncoder;
-import java.util.Objects;
 import java.util.Optional;
+import javax.persistence.EntityManager;
+import javax.persistence.ParameterMode;
+import javax.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Session;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -15,43 +16,51 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 final class TokenAuthenticationService implements UserAuthenticationService {
 
+  private static final String SUCCESS = "SUCCESS";
+
+  private static final String PROC_LOGIN = "uspLogin";
+
+  private static final String PROC_REGISTER = "uspAddUser";
+
   private final TokenService tokenService;
 
   private final UserRepository userRepository;
 
-  private final PasswordEncoder pwEncoder;
+  @PersistenceContext
+  private EntityManager entityManager;
 
   @Override
   public Optional<String> login(final String username, final String password) {
 
-    var encodedPassword = pwEncoder.encode(password);
+    var result = (String) entityManager.createStoredProcedureQuery(PROC_LOGIN)
+        .registerStoredProcedureParameter(1, String.class, ParameterMode.IN)
+        .registerStoredProcedureParameter(2, String.class, ParameterMode.IN)
+        .registerStoredProcedureParameter(3, String.class, ParameterMode.OUT)
+        .setParameter(1, username)
+        .setParameter(2, password)
+        .getOutputParameterValue(3);
 
-    return encodedPassword
-        .flatMap(s -> userRepository
-            .findByName(username)
-            .filter(user -> Objects.equals(user.getPassword(), s))
-            .map(user -> tokenService.newUserToken(username)));
+    if (SUCCESS.equals(result)) {
+      return Optional.of(tokenService.newUserToken(username));
+    }
+
+    return Optional.empty();
   }
 
   @Override
   public Optional<String> register(String username, String password) {
 
-    var encodedPassword = pwEncoder.encode(password);
+    var result = (String) entityManager.createStoredProcedureQuery(PROC_REGISTER)
+        .registerStoredProcedureParameter(1, String.class, ParameterMode.IN)
+        .registerStoredProcedureParameter(2, String.class, ParameterMode.IN)
+        .registerStoredProcedureParameter(3, String.class, ParameterMode.OUT)
+        .setParameter(1, username)
+        .setParameter(2, password)
+        .getOutputParameterValue(3);
 
-    if (encodedPassword.isPresent()) {
-      userRepository.save(User.builder()
-          .name(username)
-          .password(encodedPassword.get())
-          .enabled(true)
-          .authorities(Authorities.builder().authority("USER").build())
-          .build());
-
-      return userRepository
-          .findByName(username)
-          .filter(user -> Objects.equals(user.getPassword(), encodedPassword.get()))
-          .map(user -> tokenService.newUserToken(username));
+    if(SUCCESS.equals(result)) {
+      return Optional.of(tokenService.newUserToken(username));
     }
-
     return Optional.empty();
   }
 

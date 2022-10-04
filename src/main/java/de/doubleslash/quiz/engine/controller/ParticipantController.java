@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @RestController
-@RequestMapping("/sessions/{sessionId}/participants")
 @RequiredArgsConstructor
+@RequestMapping("/sessions/{sessionId}/participants")
 public class ParticipantController {
 
   private final QuizHandler quizHandler;
