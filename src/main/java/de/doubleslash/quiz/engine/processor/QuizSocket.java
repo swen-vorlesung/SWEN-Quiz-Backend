@@ -1,6 +1,6 @@
 package de.doubleslash.quiz.engine.processor;
 
-import de.doubleslash.quiz.engine.dto.Participant;
+import de.doubleslash.quiz.transport.dto.Participant;
 import java.util.List;
 
 public interface QuizSocket {

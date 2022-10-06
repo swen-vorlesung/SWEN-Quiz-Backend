@@ -5,16 +5,16 @@ EXEC uspAddUser
     @responseMessage=@responseMessage OUTPUT;
 
 INSERT INTO QUI01_QUIZ (ID, NAME, USR01_ID)
-VALUES (1, 'Test Quiz', 1);
+VALUES (NEXT VALUE FOR qui01_id_seq, 'Test Quiz', 1);
 INSERT INTO QUI02_QUESTION(ID, ANSWER_TIME, IMAGE, QUESTION, QUI01_ID)
-VALUES (1, 10, null, 'Ist das ein Quiz?', 1);
+VALUES (NEXT VALUE FOR qui02_id_seq, 10, null, 'Ist das ein Quiz?', 1);
 INSERT INTO QUI03_ANSWER(ID, IS_CORRECT, ANSWER, QUi02_ID)
-VALUES (1, 1, 'ja',1 );
+VALUES (NEXT VALUE FOR qui03_id_seq, 1, 'ja',1 );
 INSERT INTO QUI03_ANSWER(ID, IS_CORRECT, ANSWER, QUi02_ID)
-VALUES (2, 0, 'nein', 1);
+VALUES (NEXT VALUE FOR qui03_id_seq, 0, 'nein', 1);
 INSERT INTO QUI02_QUESTION(ID, ANSWER_TIME, IMAGE, QUESTION, QUI01_ID)
-VALUES (2, 10, null, 'Ist das auch ein Quiz?', 1);
+VALUES (NEXT VALUE FOR qui02_id_seq, 10, null, 'Ist das auch ein Quiz?', 1);
 INSERT INTO QUI03_ANSWER(ID, IS_CORRECT, ANSWER, QUi02_ID)
-VALUES (3, 1, 'ja',2 );
+VALUES (NEXT VALUE FOR qui03_id_seq, 1, 'ja',2 );
 INSERT INTO QUI03_ANSWER(ID, IS_CORRECT, ANSWER, QUi02_ID)
-VALUES (4, 0, 'nein', 2);
+VALUES (NEXT VALUE FOR qui03_id_seq, 0, 'nein', 2);
