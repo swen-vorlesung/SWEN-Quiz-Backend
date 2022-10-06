@@ -4,9 +4,8 @@ import static de.doubleslash.quiz.engine.processor.QuizState.FINISHED;
 import static de.doubleslash.quiz.engine.processor.QuizState.IDLE;
 import static de.doubleslash.quiz.engine.processor.QuizState.RUNNING;
 
-import de.doubleslash.quiz.engine.dto.Answers;
-import de.doubleslash.quiz.engine.dto.Participant;
-import de.doubleslash.quiz.engine.repository.dao.Question;
+import de.doubleslash.quiz.transport.dto.Participant;
+import de.doubleslash.quiz.repository.dao.quiz.Question;
 import de.doubleslash.quiz.engine.score.ScoreCalculator;
 import de.doubleslash.quiz.engine.score.SimpleScoreCalculator;
 import java.time.OffsetDateTime;
@@ -15,13 +14,14 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class QuizProcessor {
 
-  private final List<Question> questions;
+  private final Set<Question> questions;
 
   @Getter
   private final String sessionId;
@@ -45,6 +45,7 @@ public class QuizProcessor {
   private boolean waitingForAnswers;
 
   public boolean addParticipant(String nickname) {
+
     var alreadySet = participants.stream()
         .anyMatch(p -> p.getNickname().equals(nickname));
 
@@ -57,12 +58,14 @@ public class QuizProcessor {
   }
 
   public void startQuiz(QuizSocket socket) {
+
     state = RUNNING;
     this.socket = socket;
     qIterator = questions.iterator();
   }
 
   public Optional<Question> getNextQuestion() {
+
     if (!waitingForAnswers) {
       if (qIterator.hasNext()) {
         var q = qIterator.next();
@@ -72,7 +75,6 @@ public class QuizProcessor {
         startQuestionTimeThread(q.getAnswerTime());
         return Optional.of(q);
       }
-      state = FINISHED;
       sendResults(true);
       return Optional.empty();
     }
@@ -80,11 +82,12 @@ public class QuizProcessor {
   }
 
   private void startQuestionTimeThread(Long answerTime) {
+
     waitingForAnswers = true;
     new Thread(() -> {
       try {
         Thread.sleep(answerTime * 1000);
-        sendResults(false);
+        sendResults(!qIterator.hasNext());
       } catch (InterruptedException v) {
         Thread.currentThread().interrupt();
       }
@@ -92,11 +95,17 @@ public class QuizProcessor {
   }
 
   private void sendResults(boolean isFinished) {
+
     waitingForAnswers = false;
+    if (isFinished) {
+      state = FINISHED;
+    }
+
     socket.sendResults(sessionId, participants, isFinished);
   }
 
   public void addParticipantAnswer(String nickname, List<Long> answerIds) {
+
     if (waitingForAnswers) {
       participants.stream()
           .filter(p -> p.getNickname().equals(nickname))
@@ -106,6 +115,7 @@ public class QuizProcessor {
   }
 
   private int calculateScore(List<Long> answerIds) {
+
     var offset = ChronoUnit.SECONDS.between(timestampOfCurrentQuestion, OffsetDateTime.now());
     var correctAnswers = currentQuestion.countCorrectAnswers(answerIds);
     var wrongAnswers = answerIds.size() - correctAnswers;

@@ -4,15 +4,15 @@ import static de.doubleslash.quiz.engine.processor.QuizState.FINISHED;
 import static de.doubleslash.quiz.engine.processor.QuizState.IDLE;
 import static de.doubleslash.quiz.engine.processor.QuizState.RUNNING;
 
-import de.doubleslash.quiz.engine.controller.QuizHandler;
-import de.doubleslash.quiz.engine.dto.AnswerView;
-import de.doubleslash.quiz.engine.dto.Answers;
-import de.doubleslash.quiz.engine.dto.Participant;
+import de.doubleslash.quiz.transport.controller.QuizHandler;
+import de.doubleslash.quiz.transport.dto.AnswerView;
+import de.doubleslash.quiz.transport.dto.Answers;
+import de.doubleslash.quiz.transport.dto.Participant;
 import de.doubleslash.quiz.engine.processor.QuizProcessor;
 import de.doubleslash.quiz.engine.processor.QuizSocket;
 import de.doubleslash.quiz.engine.processor.QuizState;
-import de.doubleslash.quiz.engine.repository.QuizRepository;
-import de.doubleslash.quiz.engine.web.QuizSender;
+import de.doubleslash.quiz.repository.dao.quiz.Quiz;
+import de.doubleslash.quiz.transport.web.QuizSender;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -27,19 +27,14 @@ public class QuizAdapter implements QuizHandler, QuizSocket {
 
   private final QuizSender sender;
 
-  private final QuizRepository repo;
-
   private final List<QuizProcessor> quizes = new ArrayList<>();
 
   @Override
-  public String newQuiz(Long quizId) {
+  public String newQuiz(Quiz quiz) {
+
     var sessionId = RandomStringUtils.randomAlphanumeric(5);
-    return repo.findDistinctById(quizId)
-        .map(q -> {
-          quizes.add(new QuizProcessor(q.getQuestions(), sessionId));
-          return sessionId;
-        })
-        .orElse("");
+    quizes.add(new QuizProcessor(quiz.getQuestions(), sessionId));
+    return sessionId;
   }
 
   @Override
