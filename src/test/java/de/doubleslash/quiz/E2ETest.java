@@ -1,13 +1,16 @@
 package de.doubleslash.quiz;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.HashSet;
 
 import com.google.common.collect.Lists;
 import de.doubleslash.quiz.repository.QuizRepository;
@@ -26,36 +29,44 @@ import de.doubleslash.quiz.transport.dto.NickName;
 import de.doubleslash.quiz.transport.dto.Participant;
 import de.doubleslash.quiz.transport.security.SecurityContextService;
 import de.doubleslash.quiz.transport.web.QuizSender;
-import java.util.ArrayList;
-import java.util.HashSet;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.testcontainers.containers.MSSQLServerContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(classes = {
-    QuizApplication.class
-},
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
-)
+abstract class AbstractContainerTest {
+
+  static DockerImageName myImage = DockerImageName.parse("mcr.microsoft.com/mssql/server:2022-latest")
+          .asCompatibleSubstituteFor("mcr.microsoft.com/mssql/server");
+
+  @Container
+  public static MSSQLServerContainer<?> database = new MSSQLServerContainer<>(myImage);
+
+  static {
+    database.start();
+    System.setProperty("spring.datasource.url", database.getJdbcUrl());
+    System.setProperty("flyway.url", database.getJdbcUrl());
+  }
+}
+
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@SpringBootTest(classes = { QuizApplication.class }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Testcontainers
 @Configuration
-public class E2ETest {
+public class E2ETest extends AbstractContainerTest {
 
   public static final String E_2_E_TEST_QUIZ = "E2ETestQuiz";
-
-  @Rule
-  public MSSQLServerContainer database;
 
   @Autowired
   private AuthenticationController logInController;
@@ -84,20 +95,8 @@ public class E2ETest {
   @Captor
   private ArgumentCaptor<ArrayList<Participant>> participantCaptor;
 
-
-  public E2ETest() {
-    DockerImageName myImage = DockerImageName.parse("mcr.microsoft.com/mssql/server:2022-latest")
-        .asCompatibleSubstituteFor("mcr.microsoft.com/mssql/server");
-    database = new MSSQLServerContainer(myImage);
-    database.start();
-
-    System.setProperty("spring.datasource.url", database.getJdbcUrl());
-    System.setProperty("flyway.url", database.getJdbcUrl());
-  }
-
-  @Before
-  public void init() {
-
+  @BeforeAll
+  public void setUp() {
     var question = new Question();
     var answers = new HashSet<Answer>();
     var a1 = new Answer();
@@ -127,8 +126,8 @@ public class E2ETest {
     qrepo.save(quiz);
   }
 
-  @After
-  public void after() {
+  @AfterAll
+  public void close() {
     database.close();
   }
 
@@ -152,12 +151,14 @@ public class E2ETest {
     var login = new LogIn();
     login.setPassword("DEMO");
     login.setUsername("DEMO1");
+    RuntimeException runtimeException = assertThrows(RuntimeException.class, () -> {
 
-    //Act
-    var token = logInController.login(login);
+      //Act
+      var token = logInController.login(login);
+    });
 
     //Assert
-    assertNull(token);
+    assertTrue(runtimeException.getMessage().contains("invalid login and/or password"));
   }
 
   @Test
@@ -179,49 +180,43 @@ public class E2ETest {
 
     //Act
     var quizzes = quizController.getAllQuiz();
-    var sessionId = quizzes.stream()
-        .filter(q -> E_2_E_TEST_QUIZ.equals(q.getName()))
-        .findFirst()
-        .map(q -> {
-          var session = quizController.createNewQuiz(q.getId());
-          sessionController.startQuiz(session.getBody().getSessionId());
-          return session;
-        });
+    var sessionId = quizzes.stream().filter(q -> E_2_E_TEST_QUIZ.equals(q.getName())).findFirst().map(q -> {
+      var session = quizController.createNewQuiz(q.getId());
+      sessionController.startQuiz(session.getBody().getSessionId());
+      return session;
+    });
 
     //Assert
     assertEquals(2, quizzes.size());
     assertTrue(sessionId.isPresent());
     assertNotNull(sessionId.get().getBody());
-    verify(socket, timeout(2000).atLeastOnce())
-        .sendResultsUpdatedEvent(eq(sessionId.get().getBody().getSessionId()), participantCaptor.capture(), eq(true));
+    verify(socket, timeout(2000).atLeastOnce()).sendResultsUpdatedEvent(
+            eq(sessionId.get().getBody().getSessionId()), participantCaptor.capture(), eq(true));
   }
 
   @Test
+  @Disabled("Functionality isn't yet implemented")
   public void testQueryStartQuizWithParticipants_RunsQuiz() {
     //Arrange
     when(securityContext.getLoggedInUser()).thenReturn("DEMO");
 
     //Act
     var quizzes = quizController.getAllQuiz();
-    var sessionId = quizzes.stream()
-        .filter(q -> E_2_E_TEST_QUIZ.equals(q.getName()))
-        .findFirst()
-        .map(q -> {
-          var session = quizController.createNewQuiz(q.getId());
-          var id = session.getBody().getSessionId();
-          participantController.addParticipant(new NickName("TestParticipant") , id);
-          sessionController.startQuiz(id);
-          participantController.addAnswer(id,
-              "TestParticipant",
+    var sessionId = quizzes.stream().filter(q -> E_2_E_TEST_QUIZ.equals(q.getName())).findFirst().map(q -> {
+      var session = quizController.createNewQuiz(q.getId());
+      var id = session.getBody().getSessionId();
+      participantController.addParticipant(new NickName("TestParticipant"), id);
+      sessionController.startQuiz(id);
+      participantController.addAnswer(id, "TestParticipant",
               new Answers(Lists.newArrayList(new AnswerView(1L, "null"))));
-          return id;
-        });
+      return id;
+    });
 
     //Assert
     assertEquals(2, quizzes.size());
     assertTrue(sessionId.isPresent());
-    verify(socket, timeout(2000).atLeastOnce())
-        .sendResultsUpdatedEvent(eq(sessionId.get()), participantCaptor.capture(), eq(true));
+    verify(socket, timeout(2000).atLeastOnce()).sendResultsUpdatedEvent(eq(sessionId.get()),
+            participantCaptor.capture(), eq(true));
     assertEquals(1, participantCaptor.getValue().get(0).getScore());
   }
 }
