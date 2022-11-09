@@ -64,7 +64,7 @@ abstract class AbstractContainerTest {
 @SpringBootTest(classes = { QuizApplication.class }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Testcontainers
 @Configuration
-public class E2ETest extends AbstractContainerTest {
+public class E2EIT extends AbstractContainerTest {
 
   public static final String E_2_E_TEST_QUIZ = "E2ETestQuiz";
 
