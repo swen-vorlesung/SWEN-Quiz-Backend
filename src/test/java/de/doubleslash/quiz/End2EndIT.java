@@ -47,16 +47,16 @@ import org.testcontainers.utility.DockerImageName;
 
 abstract class AbstractContainerTest {
 
-  static DockerImageName myImage = DockerImageName.parse("mcr.microsoft.com/mssql/server:2022-latest")
+  final static DockerImageName MY_IMAGE = DockerImageName.parse("mcr.microsoft.com/mssql/server:2022-latest")
           .asCompatibleSubstituteFor("mcr.microsoft.com/mssql/server");
 
   @Container
-  public static MSSQLServerContainer<?> database = new MSSQLServerContainer<>(myImage);
+  public final static MSSQLServerContainer<?> DATABASE = new MSSQLServerContainer<>(MY_IMAGE);
 
   static {
-    database.start();
-    System.setProperty("spring.datasource.url", database.getJdbcUrl());
-    System.setProperty("flyway.url", database.getJdbcUrl());
+    DATABASE.start();
+    System.setProperty("spring.datasource.url", DATABASE.getJdbcUrl());
+    System.setProperty("flyway.url", DATABASE.getJdbcUrl());
   }
 }
 
@@ -64,7 +64,7 @@ abstract class AbstractContainerTest {
 @SpringBootTest(classes = { QuizApplication.class }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Testcontainers
 @Configuration
-public class E2EIT extends AbstractContainerTest {
+public class End2EndIT extends AbstractContainerTest {
 
   public static final String E_2_E_TEST_QUIZ = "E2ETestQuiz";
 
@@ -128,7 +128,7 @@ public class E2EIT extends AbstractContainerTest {
 
   @AfterAll
   public void close() {
-    database.close();
+    DATABASE.close();
   }
 
   @Test
