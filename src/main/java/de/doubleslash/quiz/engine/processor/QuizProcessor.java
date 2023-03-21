@@ -1,22 +1,17 @@
 package de.doubleslash.quiz.engine.processor;
 
-import static de.doubleslash.quiz.engine.processor.QuizState.FINISHED;
-import static de.doubleslash.quiz.engine.processor.QuizState.IDLE;
-import static de.doubleslash.quiz.engine.processor.QuizState.RUNNING;
-
-import de.doubleslash.quiz.transport.dto.Participant;
-import de.doubleslash.quiz.repository.dao.quiz.Question;
 import de.doubleslash.quiz.engine.score.ScoreCalculator;
 import de.doubleslash.quiz.engine.score.SimpleScoreCalculator;
-import java.time.OffsetDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import de.doubleslash.quiz.repository.dao.quiz.Question;
+import de.doubleslash.quiz.transport.dto.Participant;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+
+import java.time.OffsetDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
+
+import static de.doubleslash.quiz.engine.processor.QuizState.*;
 
 @RequiredArgsConstructor
 public class QuizProcessor {
@@ -43,6 +38,10 @@ public class QuizProcessor {
   private QuizSocket socket;
 
   private boolean waitingForAnswers;
+
+  private Thread questionTimeThread = null;
+
+  private int submittedAnswers;
 
   public boolean addParticipant(String nickname) {
 
@@ -72,6 +71,7 @@ public class QuizProcessor {
         qIterator.remove();
         timestampOfCurrentQuestion = OffsetDateTime.now();
         currentQuestion = q;
+        submittedAnswers = 0;
         startQuestionTimeThread(q.getAnswerTime());
         return Optional.of(q);
       }
@@ -84,14 +84,17 @@ public class QuizProcessor {
   private void startQuestionTimeThread(Long answerTime) {
 
     waitingForAnswers = true;
-    new Thread(() -> {
+    questionTimeThread = new Thread(() -> {
       try {
         Thread.sleep(answerTime * 1000);
-        sendResults(!qIterator.hasNext());
       } catch (InterruptedException v) {
         Thread.currentThread().interrupt();
+      } finally {
+        sendResults(!qIterator.hasNext());
       }
-    }).start();
+    });
+
+    questionTimeThread.start();
   }
 
   private void sendResults(boolean isFinished) {
@@ -106,6 +109,8 @@ public class QuizProcessor {
 
   public void addParticipantAnswer(String nickname, List<Long> answerIds) {
 
+    checkSubmittedAnswers(nickname);
+
     if (waitingForAnswers) {
       participants.stream()
           .filter(p -> p.getNickname().equals(nickname))
@@ -114,8 +119,18 @@ public class QuizProcessor {
     }
   }
 
-  private int calculateScore(List<Long> answerIds) {
+  private void checkSubmittedAnswers(String nickname) {
+    boolean isPresent = participants.stream().anyMatch(p -> p.getNickname().equals(nickname));
+    if(!isPresent)
+      return;
 
+    submittedAnswers++;
+
+    if(submittedAnswers == participants.size())
+      questionTimeThread.interrupt();
+  }
+
+  private int calculateScore(List<Long> answerIds) {
     var offset = ChronoUnit.SECONDS.between(timestampOfCurrentQuestion, OffsetDateTime.now());
     var correctAnswers = currentQuestion.countCorrectAnswers(answerIds);
     var wrongAnswers = answerIds.size() - correctAnswers;
