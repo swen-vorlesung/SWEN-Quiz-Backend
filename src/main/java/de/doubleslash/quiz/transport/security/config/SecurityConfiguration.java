@@ -50,6 +50,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
   protected void configure(final HttpSecurity http) throws Exception {
 
     http
+        .cors()
+        .and()
         .sessionManagement()
         .sessionCreationPolicy(STATELESS)
         .and()
