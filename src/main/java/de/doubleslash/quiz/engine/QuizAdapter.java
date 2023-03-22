@@ -102,7 +102,12 @@ public class QuizAdapter implements QuizHandler, QuizSocket {
     sender.sendResultsUpdatedEvent(sessionId, participants, isFinished);
     if (isFinished) {
       sender.sendQuizStateUpdatedEvent(sessionId, FINISHED);
-      quizes.clear();
+      
+      quizes
+              .stream()
+              .filter(q -> q.getSessionId().equals(sessionId))
+              .findFirst()
+              .ifPresent(quizes::remove);
     }
   }
 
