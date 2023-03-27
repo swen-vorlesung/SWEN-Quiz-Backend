@@ -1,25 +1,24 @@
 package de.doubleslash.quiz.engine;
 
-import static de.doubleslash.quiz.engine.processor.QuizState.FINISHED;
-import static de.doubleslash.quiz.engine.processor.QuizState.IDLE;
-import static de.doubleslash.quiz.engine.processor.QuizState.RUNNING;
-
-import de.doubleslash.quiz.transport.controller.QuizHandler;
-import de.doubleslash.quiz.transport.dto.AnswerView;
-import de.doubleslash.quiz.transport.dto.Answers;
-import de.doubleslash.quiz.transport.dto.Participant;
 import de.doubleslash.quiz.engine.processor.QuizProcessor;
 import de.doubleslash.quiz.engine.processor.QuizSocket;
 import de.doubleslash.quiz.engine.processor.QuizState;
 import de.doubleslash.quiz.repository.dao.quiz.Quiz;
+import de.doubleslash.quiz.transport.controller.QuizHandler;
+import de.doubleslash.quiz.transport.dto.AnswerView;
+import de.doubleslash.quiz.transport.dto.Answers;
+import de.doubleslash.quiz.transport.dto.Participant;
 import de.doubleslash.quiz.transport.web.QuizSender;
+import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.stereotype.Component;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.springframework.stereotype.Component;
+
+import static de.doubleslash.quiz.engine.processor.QuizState.*;
 
 @Component
 @RequiredArgsConstructor
@@ -103,6 +102,12 @@ public class QuizAdapter implements QuizHandler, QuizSocket {
     sender.sendResultsUpdatedEvent(sessionId, participants, isFinished);
     if (isFinished) {
       sender.sendQuizStateUpdatedEvent(sessionId, FINISHED);
+      
+      quizes
+          .stream()
+          .filter(q -> q.getSessionId().equals(sessionId))
+          .findFirst()
+          .ifPresent(quizes::remove);
     }
   }
 
