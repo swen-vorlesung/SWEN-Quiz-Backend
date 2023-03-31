@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Builder
 @Getter
-public class Quiz {
+public class QuizView {
 
   private String name;
 
