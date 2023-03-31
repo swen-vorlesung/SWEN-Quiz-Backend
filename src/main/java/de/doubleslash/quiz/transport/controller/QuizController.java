@@ -8,11 +8,12 @@ import de.doubleslash.quiz.repository.UserRepository;
 import de.doubleslash.quiz.repository.dao.quiz.Answer;
 import de.doubleslash.quiz.repository.dao.quiz.Question;
 import de.doubleslash.quiz.repository.dao.quiz.Quiz;
+import de.doubleslash.quiz.transport.dto.AnswerDto;
+import de.doubleslash.quiz.transport.dto.QuestionDto;
 import de.doubleslash.quiz.transport.dto.QuizDto;
 import de.doubleslash.quiz.transport.dto.QuizView;
 import de.doubleslash.quiz.transport.dto.SessionId;
 import de.doubleslash.quiz.transport.security.SecurityContextService;
-import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -67,48 +68,33 @@ public class QuizController {
     var username = securityContext.getLoggedInUser();
     var user = userRepository.findByName(username);
 
-    if(user.isEmpty())
+    if (user.isEmpty()) {
       return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-
-    // Save quiz
-    Quiz quiz = Quiz.builder()
-        .user(user.get())
-        .name(newQuiz.getName())
-        .build();
-
-    // Save questions
-    var savedQuiz = quizRepository.save(quiz);
-    var questions = newQuiz.getQuestions().stream()
-        .map(q -> Question.builder()
-            .quiz(savedQuiz)
-            .question(q.getQuestion())
-            .answerTime(q.getAnswerTime())
-            .build())
-        .collect(Collectors.toSet());
-
-    var savedQuestions = questionRepository.saveAll(questions);
-
-    // Save Answers
-    var newQuestions = newQuiz.getQuestions();
-    var answers = new HashSet<Answer>();
-
-    for(var savedQuestion : savedQuestions) {
-      for(var newQuestion : newQuestions){
-        if(!savedQuestion.getQuestion().equals(newQuestion.getQuestion()))
-          continue;
-
-        answers.addAll(newQuestion.getAnswers()
-            .stream()
-            .map(newAnswer -> Answer.builder()
-              .question(savedQuestion)
-              .answer(newAnswer.getAnswer())
-              .isCorrect(newAnswer.getIsCorrect())
-              .build())
-            .collect(Collectors.toSet()));
-      }
     }
 
-    answerRepository.saveAll(answers);
+    // Save quiz
+    var savedQuiz = quizRepository.save(Quiz.builder()
+        .user(user.get())
+        .name(newQuiz.getName())
+        .build());
+
+    // TODO: Error handling
+    // Save questions
+    for (QuestionDto questionDto : newQuiz.getQuestions()) {
+      var savedQuestion = questionRepository.save(Question.builder()
+          .quiz(savedQuiz)
+          .question(questionDto.getQuestion())
+          .answerTime(questionDto.getAnswerTime())
+          .build());
+
+      for (AnswerDto answerDto : questionDto.getAnswers()) {
+        answerRepository.save(Answer.builder()
+            .question(savedQuestion)
+            .answer(answerDto.getAnswer())
+            .isCorrect(answerDto.getIsCorrect())
+            .build());
+      }
+    }
 
     return new ResponseEntity<>(HttpStatus.CREATED);
   }
