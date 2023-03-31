@@ -101,7 +101,6 @@ public class QuizController {
 
   @PostMapping("/{quizId}")
   public ResponseEntity<SessionId> createNewQuiz(@PathVariable(value = "quizId") Long quizId) {
-    System.out.println("Creating new quiz: " + quizId);
     var username = securityContext.getLoggedInUser();
     var quiz = userRepository.findByName(username)
         .flatMap(user -> user.getQuizzes().stream()
