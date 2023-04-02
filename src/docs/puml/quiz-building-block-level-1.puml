@@ -1,0 +1,17 @@
+@startuml
+component "Quiz App" {
+    database DB
+    port User
+
+    component Backend as "Quiz-API"{
+        port "Quiz Updates" as qu
+    }
+    component Frontend{
+        port "User Input" as ui
+    }
+
+    DB -- Backend
+    ui <..> qu : Websocket
+    User ..>Frontend
+}
+@enduml

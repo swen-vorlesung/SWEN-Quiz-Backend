@@ -16,21 +16,7 @@ Der Dozent muss die Raumnummer anzeigen können (z. B. als QR-Code), damit die S
 Wenn alle Fragen beantwortet wurden, müssen von allen Teilnehmern der Punktestand zusammengerechnet werden und in einer Rangfolge angezeigt werden.
 
 .Zustandsdiagram des Quiz-Ablaufs
-[plantuml, target=diagram-component, format=png]
-@startuml
-start
-:Starte Quiz;
-repeat
-    :Zeige Frage mit
-    Antwortmöglichkeiten;
-    :Warte gegebenen Zeitraum
-    und nehme Antworten entegen;
-    :Zeige Ranking;
-repeat while (Gibt es noch Fragen?) is (Ja)
--> Nein;
-:Zeige Ranking mit Gewinner;
-stop;
-@enduml
+image::../images/quiz-flow.png[]
 
 .Funktionale Anforderungen an die Quiz-API
 |===
@@ -49,14 +35,22 @@ stop;
 |Der Dozent muss Fragen für das Quiz mit möglichen Antworten und Antwortzeit erstellen können.
 
 |M-4
+|Zugangslink
+|Beim Erstellen eines Raumes muss ein QR-Code angezeigt werden, der es den Spielern ermöglicht auf das Quiz zu kommen.
+
+|M-5
 |Zeitfenster einhalten
 |Das System darf nach dem Ende des Zeitfensters der Frage keine Antworten mehr entgegennehmen.
 
-|M-5
+|M-6
+|Teilnehmer
+|Die Studenten müssen an dem Quiz ohne Account teilnehmen können.
+
+|M-7
 |Endergebnis
 |Das Endergebnis muss ein Ranking aller Teilnehmer anzeigen.
 
-|M-6
+|M-8
 |Nicknames
 |Das Quiz muss Nicknames der Spieler entgennehmen.
 

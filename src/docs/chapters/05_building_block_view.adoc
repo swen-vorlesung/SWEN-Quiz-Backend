@@ -2,24 +2,8 @@
 == Bausteinsicht
 === Whitebox Gesamtsystem Level 1
 
-[plantuml, target=diagram-component, format=png]
-@startuml
-component "Quiz App" {
-    database DB
-    port User
+image::../images/quiz-building-block-level-1.png[]
 
-    component "Quiz-API"{
-        port "Quiz Updates" as qu
-    }
-    component Frontend{
-        port "User Input" as ui
-    }
-
-    DB -- Backend
-    ui <..> qu : Websocket
-    User ..>Frontend
-}
-@enduml
 
 Die Architektur ist nach dem klassischen Client-Server-Prinzip strukturiert. Das Frontend nimmt die User-Interaktion entgegen und sendet die Informationen über den Websocket an das Quiz-API. Das Quiz-API reagiert auf den Input und sendet die Updates aus dem laufenden Quiz an das Frontend.
 
@@ -37,31 +21,8 @@ Die Architektur ist nach dem klassischen Client-Server-Prinzip strukturiert. Das
 === Bausteinansicht Level 2
 ==== Whitebox Quiz-API
 
+image::../images/quiz-building-block-level-2.png[]
 
-[plantuml, target=diagram-component, format=png]
-@startuml
-[Frontend]
-component "Quiz API"{
-    portIn "User Input" as ui
-    portOut "UI" as qu
-    portOut "DB" as db
-    [MessagingService]
-    [QuizRepository]
-    [QuizEngine]
-    [QuizController]
-
-    QuizEngine <..> MessagingService :send/receive Updates
-    MessagingService <.. ui
-    QuizController <.. ui : start quiz
-    QuizController ..> QuizEngine: triggers
-    MessagingService ..> qu
-    QuizEngine ..> QuizRepository : fetch Questions
-    QuizRepository ..> db
-}
-
-Frontend ..> ui
-Frontend <.. qu
-@enduml
 
 .Enthaltene Blackboxes
 |===
@@ -83,43 +44,7 @@ Frontend <.. qu
 === Bausteinansicht Level 3
 ==== Whitebox QuizEngine
 
-[plantuml, target=diagram-component, format=png]
-@startuml
-component QuizEngine {
-    class QuizProxy {
-        - quiz : Map<roomId:int, quiz:Quiz> [0..*]
-        + sendNewQuestion(question: Question)
-        + sendResults(Map<nickname:String, score:int>, isEnd: boolean)
-        + getUserInput(nickname:String, answerId: int)
-    }
-    class QuizProcessor {
-        - questions: Question [0..*]
-        - currentQuestion : Question
-        - participants: Participant [0..*]
-        + startQuiz()
-        + addParticipantAnswer(nickname:String, answerId)
-        + addParticipant(nickname: String)
-    }
-    class Question{
-        - question : String
-        - image : byte
-        - answer : Map<answerId: int, answer:String> [0..*]
-        - answerTime : int
-        + getter()
-        + setter()
-    }
-    class Participant{
-        - nickname: String
-        - score: int
-        + getter()
-        + setter()
-    }
-
-    QuizProcessor "*" o--o "1" QuizProxy : creates <
-    Question "*" --o "1" QuizProcessor : constructor injection <
-    Participant "*" --o "1" QuizProcessor : creates <
-}
-@enduml
+image::../images/quiz-building-block-level-3.png[]
 
 Dieser Baustein handelt den Quiz-Prozess ab. Die QuizEngine instanziiert bei einer Raumeröffnung einen QuizProcessor. Dabei befüllt es den QuizProcessor mit einer Liste an Questions.
 

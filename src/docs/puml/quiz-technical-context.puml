@@ -1,0 +1,21 @@
+@startuml
+node "CI/CD Pipeline" {
+    [Frontend Deployment]
+    [Quiz-API Deployment]
+    [Terraform]
+}
+
+node "Cloud-Infrastruktur" as cloud {
+    node Container-Infrastruktur {
+        [Quiz-API]
+        [Frontend]
+    }
+    [Quiz-API] -- [Frontend]: Websocket
+    [Datenbank] -- [Quiz-API]: Datenhaltung
+}
+
+[Frontend Deployment] ..> [Frontend] : <<deploy>>
+[Quiz-API Deployment] ..> [Quiz-API] : <<deploy>>
+[Terraform] ..> cloud: <<configure>>
+[Browser] -- [Frontend] : <<show>>
+@enduml

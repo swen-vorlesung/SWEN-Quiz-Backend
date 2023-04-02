@@ -1,0 +1,14 @@
+@startuml
+start
+:Starte Quiz;
+repeat
+    :Zeige Frage mit
+    Antwortmöglichkeiten;
+    :Warte gegebenen Zeitraum
+    und nehme Antworten entegen;
+    :Zeige Ranking;
+repeat while (Gibt es noch Fragen?) is (Ja)
+-> Nein;
+:Zeige Ranking mit Gewinner;
+stop;
+@enduml

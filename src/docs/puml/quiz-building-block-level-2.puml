@@ -1,0 +1,23 @@
+@startuml
+[Frontend]
+component "Quiz API"{
+    portIn "User Input" as ui
+    portOut "UI" as qu
+    portOut "DB" as db
+    [MessagingService]
+    [QuizRepository]
+    [QuizEngine]
+    [QuizController]
+
+    QuizEngine <..> MessagingService :send/receive Updates
+    MessagingService <.. ui
+    QuizController <.. ui : start quiz
+    QuizController ..> QuizEngine: triggers
+    MessagingService ..> qu
+    QuizEngine ..> QuizRepository : fetch Questions
+    QuizRepository ..> db
+}
+
+Frontend ..> ui
+Frontend <.. qu
+@enduml
