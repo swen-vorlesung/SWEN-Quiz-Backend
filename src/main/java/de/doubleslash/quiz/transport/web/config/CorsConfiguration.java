@@ -1,9 +1,6 @@
 package de.doubleslash.quiz.transport.web.config;
 
-import static de.doubleslash.quiz.transport.web.config.Environment.PRODUCTION;
-
 import java.util.Arrays;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,19 +13,12 @@ public class CorsConfiguration {
   @Value("${cors.client.url}")
   private String allowedOrigin;
 
-  @Value("${environment}")
-  private Environment environment;
-
   @Bean
   public CorsFilter corsFilter() {
     final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     org.springframework.web.cors.CorsConfiguration config = new org.springframework.web.cors.CorsConfiguration();
     config.setAllowCredentials(true);
-    if (PRODUCTION.equals(environment)) {
-      config.addAllowedOriginPattern("*");
-    } else {
-      config.addAllowedOrigin(allowedOrigin);
-    }
+    config.addAllowedOrigin(allowedOrigin);
     config.setAllowedHeaders(Arrays.asList("Origin", "Content-Type", "Accept", "responseType", "Authorization"));
     config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "OPTIONS", "DELETE", "PATCH"));
     source.registerCorsConfiguration("/**", config);
