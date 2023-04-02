@@ -1,0 +1,13 @@
+@startuml
+[Frontend] as frontend
+[Quiz API] as api
+:Dozent:
+:Student:
+:Build System: as build
+
+build --> api
+build --> frontend
+api <--> frontend : interagiert
+Dozent --> frontend : startet Quiz
+Student --> frontend : beantwortet Fragen
+@enduml

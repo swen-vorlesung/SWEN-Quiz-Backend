@@ -1,0 +1,45 @@
+@startuml
+autonumber 1.1
+
+participant Teilnehmer
+
+QuizMaster -> UI: Erstelle Quizraum
+activate UI
+UI -> QuizEngine : createQuizRoom(fragekatalogID: String)
+activate QuizEngine
+QuizEngine -> DB : Select Quiz by ID
+activate DB
+QuizEngine <-- DB : Quiz
+deactivate DB
+UI <-- QuizEngine : roomId: String
+deactivate QuizEngine
+autonumber 2.1
+loop Für alle Teilnehmer
+QuizMaster -> Teilnehmer: QR Code zeigen
+Teilnehmer -> UI: Mit Nickname an Quiz anmelden
+UI -> QuizEngine: addParticipant(nickname: String, roomId: String)
+activate QuizEngine
+alt Success Case
+QuizEngine --> UI: Succes Message
+else Error Case
+QuizEngine --> UI: Error Message
+deactivate QuizEngine
+end
+end
+autonumber 3.1
+QuizMaster -> UI : Starte Quiz
+UI -> QuizEngine : startQuiz(roomId:String)
+activate QuizEngine
+loop Quiz-Entries
+UI <-- QuizEngine : Frage-Antwort-Paare
+group Antwortzeit abwarten
+Teilnehmer -> UI: Beantworte Frage
+UI -> QuizEngine : sendAnswer(answerId: Integer, username: String)
+end
+UI <-- QuizEngine : Score
+QuizMaster -> UI: Starte nächste Frage
+end
+UI <- QuizEngine: Endscore
+deactivate QuizEngine
+deactivate UI
+@enduml

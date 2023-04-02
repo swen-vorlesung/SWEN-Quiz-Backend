@@ -2,24 +2,7 @@
 == Laufzeitsicht
 === Ablauf Quiz
 
-[plantuml, target=diagram-component, format=png]
-@startuml
-autonumber 1.1
-UI -> QuizEngine : erstelle Raum: FragekatalogID
-QuizEngine -> DB : Fragekatalog abholen
-QuizEngine <- DB : Fragekatalog
-UI <- QuizEngine : RoomId
-autonumber 2.1
-UI -> QuizEngine : starte Quiz
-loop quiz-liste
-    UI <- QuizEngine : Frage-Antwort-Paare
-    group Antwortzeit abwarten
-        UI -> QuizEngine : Antwort
-    end
-    UI <- QuizEngine : Score
-end
-UI <- QuizEngine: Endscore
-@enduml
+image::../images/quiz-runtime-view.png[]
 
 
 .Ablauf

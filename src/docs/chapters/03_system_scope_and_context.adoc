@@ -2,20 +2,7 @@
 == Kontextabgrenzung
 === Fachlicher Kontext
 
-[plantuml, target=diagram-component, format=png]
-@startuml
-[Frontend] as frontend
-[Quiz API] as api
-:Dozent:
-:Student:
-:Build System: as build
-
-build --> api
-build --> frontend
-api <--> frontend : interagiert
-Dozent --> frontend : startet Quiz
-Student --> frontend : beantwortet Fragen
-@enduml
+image::../images/quiz-context.png[]
 
 .Kontext
 |===
@@ -40,27 +27,8 @@ Student --> frontend : beantwortet Fragen
 === Technischer Kontext
 
 [plantuml, target=diagram-component, format=png]
-@startuml
-node "CI/CD Pipeline" {
-    [Frontend Deployment]
-    [Quiz-API Deployment]
-    [Terraform]
-}
 
-node "Cloud-Infrastruktur" as cloud {
-    node Container-Infrastruktur {
-        [Quiz-API]
-        [Frontend]
-    }
-    [Quiz-API] -- [Frontend]: Websocket
-    [Datenbank] -- [Quiz-API]: Datenhaltung
-}
-
-[Frontend Deployment] ..> [Frontend] : <<deploy>>
-[Quiz-API Deployment] ..> [Quiz-API] : <<deploy>>
-[Terraform] ..> cloud: <<configure>>
-[Browser] -- [Frontend] : <<show>>
-@enduml
+image::../images/quiz-technical-context.png[]
 
 
 .Kontext
