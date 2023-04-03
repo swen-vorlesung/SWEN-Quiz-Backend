@@ -1,17 +1,22 @@
 package de.doubleslash.quiz.engine.processor;
 
+import static de.doubleslash.quiz.engine.processor.QuizState.FINISHED;
+import static de.doubleslash.quiz.engine.processor.QuizState.IDLE;
+import static de.doubleslash.quiz.engine.processor.QuizState.RUNNING;
+
 import de.doubleslash.quiz.engine.score.ScoreCalculator;
 import de.doubleslash.quiz.engine.score.SimpleScoreCalculator;
 import de.doubleslash.quiz.repository.dao.quiz.Question;
 import de.doubleslash.quiz.transport.dto.Participant;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
-
-import static de.doubleslash.quiz.engine.processor.QuizState.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class QuizProcessor {

@@ -1,8 +1,8 @@
 package de.doubleslash.quiz.transport.web;
 
-import de.doubleslash.quiz.transport.dto.Participant;
 import de.doubleslash.quiz.engine.processor.QuizState;
 import de.doubleslash.quiz.repository.dao.quiz.Question;
+import de.doubleslash.quiz.transport.dto.Participant;
 import de.doubleslash.quiz.transport.web.events.NewQuestionEvent;
 import de.doubleslash.quiz.transport.web.events.ParticipantsUpdatedEvent;
 import de.doubleslash.quiz.transport.web.events.QuizEvent;

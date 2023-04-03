@@ -1,7 +1,7 @@
 package de.doubleslash.quiz.transport.controller;
 
-import de.doubleslash.quiz.transport.dto.Answers;
 import de.doubleslash.quiz.repository.dao.quiz.Quiz;
+import de.doubleslash.quiz.transport.dto.Answers;
 
 public interface QuizHandler {
 

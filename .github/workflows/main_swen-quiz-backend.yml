@@ -55,8 +55,6 @@ jobs:
           DB_CONNECTION_STRING=${{ secrets.DB_CONNECTION_STRING }}
           JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
           JWT_ISSUER=${{ secrets.JWT_ISSUER }}
-          CORS_CLIENT_URL=https://swen-vorlesung.net
-          BUILD_ENVIRONMENT="PRODUCTION"
 
   deploy:
     runs-on: ubuntu-latest
