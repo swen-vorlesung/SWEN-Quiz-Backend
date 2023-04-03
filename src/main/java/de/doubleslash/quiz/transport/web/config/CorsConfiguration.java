@@ -16,12 +16,16 @@ public class CorsConfiguration {
   private String allowedOrigin;
   @Bean
   public CorsFilter corsFilter() {
-    log.info("Allowed Origin: " + allowedOrigin);
+    var origins = allowedOrigin.split(",");
+    log.info("Allowed Origin:");
+
+    for(var origin : origins)
+      log.info("ORIGIN: " + origin);
 
     final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     org.springframework.web.cors.CorsConfiguration config = new org.springframework.web.cors.CorsConfiguration();
     config.setAllowCredentials(true);
-    config.addAllowedOrigin("https://swen-vorlesung.net");
+    config.setAllowedOrigins(Arrays.asList(origins));
     config.setAllowedHeaders(Arrays.asList("Origin", "Content-Type", "Accept", "responseType", "Authorization"));
     config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "OPTIONS", "DELETE", "PATCH"));
     source.registerCorsConfiguration("/**", config);
