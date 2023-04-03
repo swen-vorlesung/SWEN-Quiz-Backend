@@ -1,7 +1,7 @@
 package de.doubleslash.quiz.transport.controller;
 
-import de.doubleslash.quiz.transport.dto.LogIn;
 import de.doubleslash.quiz.repository.UserRepository;
+import de.doubleslash.quiz.transport.dto.LogIn;
 import de.doubleslash.quiz.transport.dto.TokenResponse;
 import de.doubleslash.quiz.transport.security.UserAuthenticationService;
 import lombok.RequiredArgsConstructor;

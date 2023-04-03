@@ -16,17 +16,20 @@ import de.doubleslash.quiz.transport.dto.SessionId;
 import de.doubleslash.quiz.transport.security.SecurityContextService;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
@@ -64,6 +67,7 @@ public class QuizController {
   }
 
   @PostMapping
+  @Transactional
   public ResponseEntity<Object> saveNewQuiz(@RequestBody QuizDto newQuiz) {
     var username = securityContext.getLoggedInUser();
     var user = userRepository.findByName(username);
@@ -78,7 +82,6 @@ public class QuizController {
         .name(newQuiz.getName())
         .build());
 
-    // TODO: Error handling
     // Save questions
     for (QuestionDto questionDto : newQuiz.getQuestions()) {
       var savedQuestion = questionRepository.save(Question.builder()
@@ -97,6 +100,13 @@ public class QuizController {
     }
 
     return new ResponseEntity<>(HttpStatus.CREATED);
+  }
+
+  @ExceptionHandler
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  public ResponseEntity<Object> handleException(Exception e) {
+    e.printStackTrace();
+    return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
   }
 
   @PostMapping("/{quizId}")

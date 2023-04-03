@@ -5,13 +5,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.HashSet;
 
 import com.google.common.collect.Lists;
 import de.doubleslash.quiz.repository.QuizRepository;
@@ -30,6 +26,8 @@ import de.doubleslash.quiz.transport.dto.NickName;
 import de.doubleslash.quiz.transport.dto.Participant;
 import de.doubleslash.quiz.transport.security.SecurityContextService;
 import de.doubleslash.quiz.transport.web.QuizSender;
+import java.util.ArrayList;
+import java.util.HashSet;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
