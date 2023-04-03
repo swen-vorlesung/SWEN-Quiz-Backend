@@ -21,7 +21,7 @@ public class CorsConfiguration {
     final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     org.springframework.web.cors.CorsConfiguration config = new org.springframework.web.cors.CorsConfiguration();
     config.setAllowCredentials(true);
-    config.addAllowedOrigin(allowedOrigin);
+    config.addAllowedOrigin("https://swen-vorlesung.net");
     config.setAllowedHeaders(Arrays.asList("Origin", "Content-Type", "Accept", "responseType", "Authorization"));
     config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "OPTIONS", "DELETE", "PATCH"));
     source.registerCorsConfiguration("/**", config);
