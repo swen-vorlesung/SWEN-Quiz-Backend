@@ -1,0 +1,36 @@
+@startuml
+component QuizEngine {
+    class QuizProxy {
+        - quiz : Map<roomId:int, quiz:Quiz> [0..*]
+        + sendNewQuestion(question: Question)
+        + sendResults(Map<nickname:String, score:int>, isEnd: boolean)
+        + getUserInput(nickname:String, answerId: int)
+    }
+    class QuizProcessor {
+        - questions: Question [0..*]
+        - currentQuestion : Question
+        - participants: Participant [0..*]
+        + startQuiz()
+        + addParticipantAnswer(nickname:String, answerId)
+        + addParticipant(nickname: String)
+    }
+    class Question{
+        - question : String
+        - image : byte
+        - answer : Map<answerId: int, answer:String> [0..*]
+        - answerTime : int
+        + getter()
+        + setter()
+    }
+    class Participant{
+        - nickname: String
+        - score: int
+        + getter()
+        + setter()
+    }
+
+    QuizProcessor "*" o--o "1" QuizProxy : creates <
+    Question "*" --o "1" QuizProcessor : constructor injection <
+    Participant "*" --o "1" QuizProcessor : creates <
+}
+@enduml
