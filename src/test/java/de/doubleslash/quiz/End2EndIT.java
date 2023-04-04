@@ -114,7 +114,7 @@ public class End2EndIT extends AbstractContainerTest {
     question.setQuestion("Test");
     question.setAnswerTime(120L);
     question.setAnswers(answers);
-    var questions = new HashSet<Question>();
+    var questions = new ArrayList<Question>();
     questions.add(question);
 
     var quiz = new Quiz();

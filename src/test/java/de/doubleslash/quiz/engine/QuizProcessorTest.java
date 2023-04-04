@@ -16,7 +16,7 @@ import de.doubleslash.quiz.repository.dao.quiz.Question;
 import de.doubleslash.quiz.transport.dto.Participant;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,7 +31,7 @@ class QuizProcessorTest {
 
   private final String TEST_PARTICIPANT = "Test Participant";
 
-  private final Set<Question> questions = new HashSet<>();
+  private final List<Question> questions = new ArrayList<>();
 
   @Mock
   private QuizSocket quizSocket;
