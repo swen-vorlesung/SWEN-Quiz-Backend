@@ -1,6 +1,6 @@
 package de.doubleslash.quiz.transport.dto;
 
-import java.util.Set;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,5 +16,5 @@ public class QuizDto {
 
     private String name;
 
-    private Set<QuestionDto> questions;
+    private List<QuestionDto> questions;
 }

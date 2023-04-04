@@ -3,7 +3,7 @@ package de.doubleslash.quiz.repository.dao.quiz;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import de.doubleslash.quiz.repository.dao.auth.User;
-import java.util.Set;
+import java.util.List;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -13,6 +13,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -38,7 +39,8 @@ public class Quiz {
 
   @OneToMany(mappedBy = "quiz", fetch = FetchType.EAGER)
   @JsonManagedReference
-  private Set<Question> questions;
+  @OrderBy("id")
+  private List<Question> questions;
 
   private String name;
 
