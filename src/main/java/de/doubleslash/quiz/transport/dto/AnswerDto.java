@@ -13,6 +13,8 @@ import lombok.Setter;
 @NoArgsConstructor
 public class AnswerDto {
 
+    private Long id;
+
     private String answer;
 
     private Boolean isCorrect;

@@ -13,9 +13,10 @@ import de.doubleslash.quiz.transport.dto.AnswerView;
 import de.doubleslash.quiz.transport.dto.Answers;
 import de.doubleslash.quiz.transport.dto.Participant;
 import de.doubleslash.quiz.transport.web.QuizSender;
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -27,7 +28,7 @@ public class QuizAdapter implements QuizHandler, QuizSocket {
 
   private final QuizSender sender;
 
-  private final List<QuizProcessor> quizes = new ArrayList<>();
+  private final Set<QuizProcessor> quizes = new HashSet<>();
 
   @Override
   public String newQuiz(Quiz quiz) {
