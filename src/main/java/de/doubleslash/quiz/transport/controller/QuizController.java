@@ -71,18 +71,16 @@ public class QuizController {
   }
 
   @GetMapping("/{quizId}")
-  public QuizDto GetCompleteQuiz(@PathVariable(value = "quizId") Long quizId) {
-    // TODO: Check if User exists and has this quiz
-
+  public QuizDto getCompleteQuiz(@PathVariable(value = "quizId") Long quizId) {
     var username = securityContext.getLoggedInUser();
+    var user = userRepository.findByName(username);
+    if (user.isEmpty()) {
+      return null;
+    }
 
-    // TODO: Split user and getting the quiz
-    Optional<Quiz> quizOptional = userRepository.findByName(username)
-        .map(user -> user.getQuizzes().stream()
-            .filter(quiz -> quiz.getId().equals(quizId))
-            .findFirst())
-        .get();
-
+    var quizOptional = user.get().getQuizzes().stream()
+        .filter(quiz -> quiz.getId().equals(quizId))
+        .findFirst();
     if (quizOptional.isEmpty()) {
       return null;
     }
