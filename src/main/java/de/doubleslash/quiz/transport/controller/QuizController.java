@@ -155,43 +155,13 @@ public class QuizController {
       return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 
+    var updatedQuestions = updateQuiz.getQuestions();
+    var oldQuestions = oldQuiz.getQuestions();
+
     oldQuiz.setName(updateQuiz.getName());
 
-    // Create or update Questions
-    var oldQuestions = oldQuiz.getQuestions();
-    for (var updatedQuestion : updateQuiz.getQuestions()) {
-      if (updatedQuestion.getId() != null) {
-        // Update Question
-
-        oldQuestions.stream()
-            .filter(oldQuestion -> oldQuestion.getId().equals(updatedQuestion.getId()))
-            .findFirst()
-            .ifPresent(oldQuestion -> {
-              oldQuestion.setQuestion(updatedQuestion.getQuestion());
-              oldQuestion.setAnswerTime(updatedQuestion.getAnswerTime());
-            });
-      } else {
-        // Creating new Question with new answers
-        saveQuestionAndAnswers(updatedQuestion, oldQuiz);
-      }
-    }
-
-    // Remove old questions
-    Set<Question> toRemoveQuestions = new HashSet<>();
-    var updatedQuestions = updateQuiz.getQuestions();
-    for (var oldQuestion : oldQuestions) {
-      if (updatedQuestions.contains(oldQuestion)) {
-        continue;
-      }
-
-      for (var answer : oldQuestion.getAnswers()) {
-        answerRepository.deleteById(answer.getId());
-      }
-
-      questionRepository.deleteById(oldQuestion.getId());
-      toRemoveQuestions.add(oldQuestion);
-    }
-    oldQuestions.removeAll(toRemoveQuestions);
+    removeOldQuestions(oldQuestions, updatedQuestions);
+    createOrUpdateQuestions(oldQuiz, updatedQuestions);
 
     // Update Answers
     for (var updatedQuestion : updateQuiz.getQuestions()) {
@@ -207,39 +177,82 @@ public class QuizController {
         continue;
       }
 
-      // Remove old answers
-      Set<Answer> toRemoveAnswer = new HashSet<>();
-      var answers = oldQuestion.get().getAnswers();
-      for (var oldAnswer : answers) {
-        if (updatedQuestion.getAnswers().contains(oldAnswer)) {
-          continue;
-        }
-
-        log.info("Removing Answer: " + oldAnswer.getAnswer());
-        toRemoveAnswer.add(oldAnswer);
-        answerRepository.deleteById(oldAnswer.getId());
-      }
-      answers.removeAll(toRemoveAnswer);
-
-      // Create or update Answers
-      var oldAnswers = oldQuestion.get().getAnswers();
-      for (var updatedAnswer : updatedQuestion.getAnswers()) {
-        if (updatedAnswer.getId() != null) {
-          oldAnswers.stream().filter(oldAnswer -> oldAnswer.getId().equals(updatedAnswer.getId()))
-              .findFirst()
-              .ifPresent(oldAnswer -> {
-                oldAnswer.setAnswer(updatedAnswer.getAnswer());
-                oldAnswer.setIsCorrect(updatedAnswer.getIsCorrect());
-              });
-        } else {
-          saveAnswer(updatedAnswer, oldQuestion.get());
-        }
-      }
+      removeOldAnswers(oldQuestion.get().getAnswers(), updatedQuestion.getAnswers());
+      createOrUpdateAnswers(oldQuestion.get(), updatedQuestion.getAnswers());
     }
 
     quizRepository.save(oldQuiz);
 
     return new ResponseEntity<>(HttpStatus.CREATED);
+  }
+
+  private void createOrUpdateQuestions(Quiz oldQuiz, List<QuestionDto> updatedQuestions) {
+    var oldQuestions = oldQuiz.getQuestions();
+    for (var updatedQuestion : updatedQuestions) {
+      if (updatedQuestion.getId() != null) {
+        // Update Question
+
+        oldQuestions.stream()
+            .filter(oldQuestion -> oldQuestion.getId().equals(updatedQuestion.getId()))
+            .findFirst()
+            .ifPresent(oldQuestion -> {
+              oldQuestion.setQuestion(updatedQuestion.getQuestion());
+              oldQuestion.setAnswerTime(updatedQuestion.getAnswerTime());
+            });
+      } else {
+        // Creating new Question with new answers
+        saveQuestionAndAnswers(updatedQuestion, oldQuiz);
+      }
+    }
+  }
+
+  private void createOrUpdateAnswers(Question oldQuestion, List<AnswerDto> updatedAnswers) {
+    var oldAnswers = oldQuestion.getAnswers();
+    for (var updatedAnswer : updatedAnswers) {
+      if (updatedAnswer.getId() != null) {
+        oldAnswers.stream().filter(oldAnswer -> oldAnswer.getId().equals(updatedAnswer.getId()))
+            .findFirst()
+            .ifPresent(oldAnswer -> {
+              oldAnswer.setAnswer(updatedAnswer.getAnswer());
+              oldAnswer.setIsCorrect(updatedAnswer.getIsCorrect());
+            });
+      } else {
+        saveAnswer(updatedAnswer, oldQuestion);
+      }
+    }
+  }
+
+  private void removeOldQuestions(Set<Question> oldQuestions, List<QuestionDto> updatedQuestion) {
+    // Remove old questions
+    Set<Question> toRemoveQuestions = new HashSet<>();
+    for (var oldQuestion : oldQuestions) {
+      if (updatedQuestion.contains(oldQuestion)) {
+        continue;
+      }
+
+      for (var answer : oldQuestion.getAnswers()) {
+        answerRepository.deleteById(answer.getId());
+      }
+
+      questionRepository.deleteById(oldQuestion.getId());
+      toRemoveQuestions.add(oldQuestion);
+    }
+    oldQuestions.removeAll(toRemoveQuestions);
+  }
+
+  private void removeOldAnswers(Set<Answer> oldAnswers, List<AnswerDto> updatedAnswers) {
+    // Remove old answers
+    Set<Answer> toRemoveAnswer = new HashSet<>();
+    for (var oldAnswer : oldAnswers) {
+      if (updatedAnswers.contains(oldAnswer)) {
+        continue;
+      }
+
+      log.info("Removing Answer: " + oldAnswer.getAnswer());
+      toRemoveAnswer.add(oldAnswer);
+      answerRepository.deleteById(oldAnswer.getId());
+    }
+    oldAnswers.removeAll(toRemoveAnswer);
   }
 
   private void saveQuestionAndAnswers(QuestionDto newQuestion, Quiz quiz) {
