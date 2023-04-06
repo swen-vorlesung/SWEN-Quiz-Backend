@@ -1,6 +1,8 @@
 package de.doubleslash.quiz.repository.dao.quiz;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import de.doubleslash.quiz.transport.dto.AnswerDto;
+import java.util.Objects;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -39,4 +41,23 @@ public class Answer {
   private String answer;
 
   private Boolean isCorrect;
+
+  @Override
+  public boolean equals(Object object) {
+    if (this == object) {
+      return true;
+    }
+    if (object == null) {
+      return false;
+    }
+
+    if (object.getClass() == (AnswerDto.class)) {
+      return Objects.equals(id, ((AnswerDto) object).getId());
+    } else if (object.getClass() != getClass()) {
+      return false;
+    }
+
+    Answer answer = (Answer) object;
+    return Objects.equals(id, answer.id);
+  }
 }

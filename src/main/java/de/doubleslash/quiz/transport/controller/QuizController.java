@@ -14,8 +14,10 @@ import de.doubleslash.quiz.transport.dto.QuizDto;
 import de.doubleslash.quiz.transport.dto.QuizView;
 import de.doubleslash.quiz.transport.dto.SessionId;
 import de.doubleslash.quiz.transport.security.SecurityContextService;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -68,6 +70,45 @@ public class QuizController {
         .orElse(Lists.newArrayList());
   }
 
+  @GetMapping("/{quizId}")
+  public QuizDto GetCompleteQuiz(@PathVariable(value = "quizId") Long quizId) {
+    // TODO: Check if User exists and has this quiz
+
+    var username = securityContext.getLoggedInUser();
+
+    // TODO: Split user and getting the quiz
+    Optional<Quiz> quizOptional = userRepository.findByName(username)
+        .map(user -> user.getQuizzes().stream()
+            .filter(quiz -> quiz.getId().equals(quizId))
+            .findFirst())
+        .get();
+
+    if (quizOptional.isEmpty()) {
+      return null;
+    }
+
+    Quiz quiz = quizOptional.get();
+
+    return QuizDto.builder()
+        .id(quiz.getId())
+        .name(quiz.getName())
+        .questions(quiz.getQuestions().stream()
+            .map(question -> QuestionDto.builder()
+                .id(question.getId())
+                .question(question.getQuestion())
+                .answerTime(question.getAnswerTime())
+                .answers(question.getAnswers().stream()
+                    .map(answer -> AnswerDto.builder()
+                        .id(answer.getId())
+                        .answer(answer.getAnswer())
+                        .isCorrect(answer.getIsCorrect())
+                        .build())
+                    .collect(Collectors.toList()))
+                .build())
+            .collect(Collectors.toList()))
+        .build();
+  }
+
   @PostMapping
   @Transactional
   public ResponseEntity<Object> saveNewQuiz(@RequestBody QuizDto newQuiz) {
@@ -86,7 +127,7 @@ public class QuizController {
 
     // Save questions
     for (QuestionDto questionDto : newQuiz.getQuestions()) {
-      CreateQuestionAndAnswers(questionDto, savedQuiz);
+      saveQuestionAndAnswers(questionDto, savedQuiz);
     }
 
     return new ResponseEntity<>(HttpStatus.CREATED);
@@ -110,16 +151,18 @@ public class QuizController {
     }
 
     Quiz oldQuiz = optionalQuiz.get();
-    oldQuiz.setName(updateQuiz.getName());
-
     if (!oldQuiz.getUser().getId().equals(user.get().getId())) {
       return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 
+    oldQuiz.setName(updateQuiz.getName());
+
+    // Create or update Questions
     var oldQuestions = oldQuiz.getQuestions();
     for (var updatedQuestion : updateQuiz.getQuestions()) {
       if (updatedQuestion.getId() != null) {
         // Update Question
+
         oldQuestions.stream()
             .filter(oldQuestion -> oldQuestion.getId().equals(updatedQuestion.getId()))
             .findFirst()
@@ -129,9 +172,26 @@ public class QuizController {
             });
       } else {
         // Creating new Question with new answers
-        CreateQuestionAndAnswers(updatedQuestion, oldQuiz);
+        saveQuestionAndAnswers(updatedQuestion, oldQuiz);
       }
     }
+
+    // Remove old questions
+    Set<Question> toRemoveQuestions = new HashSet<>();
+    var updatedQuestions = updateQuiz.getQuestions();
+    for (var oldQuestion : oldQuestions) {
+      if (updatedQuestions.contains(oldQuestion)) {
+        continue;
+      }
+
+      for (var answer : oldQuestion.getAnswers()) {
+        answerRepository.deleteById(answer.getId());
+      }
+
+      questionRepository.deleteById(oldQuestion.getId());
+      toRemoveQuestions.add(oldQuestion);
+    }
+    oldQuestions.removeAll(toRemoveQuestions);
 
     // Update Answers
     for (var updatedQuestion : updateQuiz.getQuestions()) {
@@ -147,6 +207,21 @@ public class QuizController {
         continue;
       }
 
+      // Remove old answers
+      Set<Answer> toRemoveAnswer = new HashSet<>();
+      var answers = oldQuestion.get().getAnswers();
+      for (var oldAnswer : answers) {
+        if (updatedQuestion.getAnswers().contains(oldAnswer)) {
+          continue;
+        }
+
+        log.info("Removing Answer: " + oldAnswer.getAnswer());
+        toRemoveAnswer.add(oldAnswer);
+        answerRepository.deleteById(oldAnswer.getId());
+      }
+      answers.removeAll(toRemoveAnswer);
+
+      // Create or update Answers
       var oldAnswers = oldQuestion.get().getAnswers();
       for (var updatedAnswer : updatedQuestion.getAnswers()) {
         if (updatedAnswer.getId() != null) {
@@ -157,7 +232,7 @@ public class QuizController {
                 oldAnswer.setIsCorrect(updatedAnswer.getIsCorrect());
               });
         } else {
-          createAnswer(updatedAnswer, oldQuestion.get());
+          saveAnswer(updatedAnswer, oldQuestion.get());
         }
       }
     }
@@ -167,7 +242,7 @@ public class QuizController {
     return new ResponseEntity<>(HttpStatus.CREATED);
   }
 
-  private void CreateQuestionAndAnswers(QuestionDto newQuestion, Quiz quiz) {
+  private void saveQuestionAndAnswers(QuestionDto newQuestion, Quiz quiz) {
     var savedQuestion = questionRepository.save(Question.builder()
         .quiz(quiz)
         .question(newQuestion.getQuestion())
@@ -176,11 +251,11 @@ public class QuizController {
 
     // Save answers
     for (AnswerDto answerDto : newQuestion.getAnswers()) {
-      createAnswer(answerDto, savedQuestion);
+      saveAnswer(answerDto, savedQuestion);
     }
   }
 
-  private void createAnswer(AnswerDto newAnswer, Question question) {
+  private void saveAnswer(AnswerDto newAnswer, Question question) {
     answerRepository.save(Answer.builder()
         .question(question)
         .answer(newAnswer.getAnswer())
