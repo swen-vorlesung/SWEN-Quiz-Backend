@@ -179,18 +179,20 @@ public class End2EndIT extends AbstractContainerTest {
 
     //Act
     var quizzes = quizController.getAllQuiz();
-    var sessionId = quizzes.stream().filter(q -> E_2_E_TEST_QUIZ.equals(q.getName())).findFirst().map(q -> {
-      var session = quizController.createNewQuiz(q.getId());
-      sessionController.startQuiz(session.getBody().getSessionId());
-      return session;
-    });
+    var sessionId = quizzes.stream().filter(q -> E_2_E_TEST_QUIZ.equals(q.getName())).findFirst()
+        .map(q -> {
+          var session = quizController.createNewQuiz(q.getId());
+          sessionController.startQuiz(session.getBody().getSessionId());
+          return session;
+        });
 
     //Assert
     assertEquals(2, quizzes.size());
     assertTrue(sessionId.isPresent());
     assertNotNull(sessionId.get().getBody());
-    verify(socket, timeout(2000).atLeastOnce()).sendResultsUpdatedEvent(
-            eq(sessionId.get().getBody().getSessionId()), participantCaptor.capture(), eq(true));
+
+    verify(socket, timeout(2000).atLeastOnce()).sendTimeOverEvent(
+        eq(sessionId.get().getBody().getSessionId()));
   }
 
   @Test
