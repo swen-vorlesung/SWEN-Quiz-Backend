@@ -14,6 +14,8 @@ import lombok.Setter;
 @AllArgsConstructor
 public class QuestionDto {
 
+    private Long id;
+
     private String question;
 
     private byte[] image;

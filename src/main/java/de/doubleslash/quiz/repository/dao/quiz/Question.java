@@ -2,7 +2,9 @@ package de.doubleslash.quiz.repository.dao.quiz;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import de.doubleslash.quiz.transport.dto.QuestionDto;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -80,5 +82,29 @@ public class Question {
     return (int) answers.stream()
         .filter(Answer::getIsCorrect)
         .count();
+  }
+
+  @Override
+  public boolean equals(Object object) {
+    if (this == object) {
+      return true;
+    }
+    if (object == null) {
+      return false;
+    }
+
+    if (object.getClass() == (QuestionDto.class)) {
+      return Objects.equals(id, ((QuestionDto) object).getId());
+    } else if (object.getClass() != getClass()) {
+      return false;
+    }
+
+    Question question = (Question) object;
+    return Objects.equals(id, question.id);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(id);
   }
 }

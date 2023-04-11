@@ -14,13 +14,14 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class QuizProcessor {
 
-  private final List<Question> questions;
+  private final Set<Question> questions;
 
   @Getter
   private final String sessionId;
