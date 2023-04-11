@@ -87,6 +87,7 @@ class QuizProcessorTest {
     var participants = processor.getParticipants();
     processor.startQuiz(quizSocket);
     processor.getNextQuestion();
+    processor.showResults();
 
     await()
         .atMost(2, TimeUnit.SECONDS)
@@ -110,6 +111,7 @@ class QuizProcessorTest {
     processor.startQuiz(quizSocket);
     processor.getNextQuestion();
     processor.addParticipantAnswer(TEST_PARTICIPANT, Lists.newArrayList(1L));
+    processor.showResults();
 
     await()
         .atMost(2, TimeUnit.SECONDS)
