@@ -8,6 +8,7 @@ import de.doubleslash.quiz.transport.web.events.ParticipantsUpdatedEvent;
 import de.doubleslash.quiz.transport.web.events.QuizEvent;
 import de.doubleslash.quiz.transport.web.events.QuizStateUpdatedEvent;
 import de.doubleslash.quiz.transport.web.events.ResultsUpdatedEvent;
+import de.doubleslash.quiz.transport.web.events.TimeOverEvent;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -27,12 +28,17 @@ public class QuizSender {
     sendEvent(sessionId, new ParticipantsUpdatedEvent(participants));
   }
 
-  public void sendResultsUpdatedEvent(String sessionId, List<Participant> participants, boolean isFinished) {
+  public void sendResultsUpdatedEvent(String sessionId, List<Participant> participants,
+      boolean isFinished) {
     sendEvent(sessionId, new ResultsUpdatedEvent(participants, isFinished));
   }
 
   public void sendQuizStateUpdatedEvent(String sessionId, QuizState state) {
     sendEvent(sessionId, new QuizStateUpdatedEvent(state));
+  }
+
+  public void sendTimeOverEvent(String sessionId) {
+    sendEvent(sessionId, new TimeOverEvent());
   }
 
   private void sendEvent(String sessionId, QuizEvent event) {

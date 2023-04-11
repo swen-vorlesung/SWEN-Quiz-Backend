@@ -79,10 +79,14 @@ public class QuizProcessor {
         startQuestionTimeThread(q.getAnswerTime());
         return Optional.of(q);
       }
-      sendResults(true);
+      socket.sendTimeOut(sessionId);
       return Optional.empty();
     }
     return Optional.of(currentQuestion);
+  }
+
+  public void showResults() {
+    sendResults(!qIterator.hasNext());
   }
 
   private void startQuestionTimeThread(Long answerTime) {
@@ -94,7 +98,7 @@ public class QuizProcessor {
       } catch (InterruptedException v) {
         Thread.currentThread().interrupt();
       } finally {
-        sendResults(!qIterator.hasNext());
+        socket.sendTimeOut(sessionId);
       }
     });
 

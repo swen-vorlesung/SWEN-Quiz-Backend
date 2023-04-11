@@ -18,4 +18,6 @@ public interface QuizHandler {
   boolean startNewQuestion(String sessionId);
 
   void notifyQuizStarted(String sessionId);
+
+  boolean showResults(String sessionId);
 }

@@ -21,7 +21,7 @@ public class QuestionView {
     this.image = question.getImage();
     this.answerTime = question.getAnswerTime();
     this.answers = question.getAnswers().stream()
-        .map(a -> new AnswerView(a.getId(), a.getAnswer()))
+        .map(a -> new AnswerView(a.getId(), a.getAnswer(), a.getIsCorrect()))
         .collect(Collectors.toList());
   }
 }

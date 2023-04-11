@@ -10,4 +10,6 @@ public class AnswerView {
   private Long id;
 
   private String answer;
+
+  private Boolean isCorrect;
 }

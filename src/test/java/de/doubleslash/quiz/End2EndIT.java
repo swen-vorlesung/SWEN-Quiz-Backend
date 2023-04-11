@@ -207,7 +207,7 @@ public class End2EndIT extends AbstractContainerTest {
       participantController.addParticipant(new NickName("TestParticipant"), id);
       sessionController.startQuiz(id);
       participantController.addAnswer(id, "TestParticipant",
-              new Answers(Lists.newArrayList(new AnswerView(1L, "null"))));
+          new Answers(Lists.newArrayList(new AnswerView(1L, "null", true))));
       return id;
     });
 
