@@ -35,4 +35,13 @@ public class SessionController {
     }
     return HttpStatus.BAD_REQUEST;
   }
+
+  @PostMapping("/{sessionId}/quiz/showResults")
+  public HttpStatus showResults(@PathVariable(value = "sessionId") String sessionId) {
+    var success = quizHandler.showResults(sessionId);
+    if (success) {
+      return HttpStatus.ACCEPTED;
+    }
+    return HttpStatus.BAD_REQUEST;
+  }
 }

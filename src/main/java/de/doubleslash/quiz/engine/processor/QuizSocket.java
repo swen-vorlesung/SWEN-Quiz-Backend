@@ -6,4 +6,6 @@ import java.util.List;
 public interface QuizSocket {
 
   void sendResults(String sessionId, List<Participant> participants, boolean isFinished);
+
+  void sendTimeOut(String sessionId);
 }
