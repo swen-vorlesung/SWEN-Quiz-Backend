@@ -14,7 +14,10 @@ import de.doubleslash.quiz.transport.dto.QuizDto;
 import de.doubleslash.quiz.transport.dto.QuizView;
 import de.doubleslash.quiz.transport.dto.SessionId;
 import de.doubleslash.quiz.transport.security.SecurityContextService;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +30,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -66,6 +70,43 @@ public class QuizController {
         .orElse(Lists.newArrayList());
   }
 
+  @GetMapping("/{quizId}")
+  public QuizDto getCompleteQuiz(@PathVariable(value = "quizId") Long quizId) {
+    var username = securityContext.getLoggedInUser();
+    var user = userRepository.findByName(username);
+    if (user.isEmpty()) {
+      return null;
+    }
+
+    var quizOptional = user.get().getQuizzes().stream()
+        .filter(quiz -> quiz.getId().equals(quizId))
+        .findFirst();
+    if (quizOptional.isEmpty()) {
+      return null;
+    }
+
+    Quiz quiz = quizOptional.get();
+
+    return QuizDto.builder()
+        .id(quiz.getId())
+        .name(quiz.getName())
+        .questions(quiz.getQuestions().stream()
+            .map(question -> QuestionDto.builder()
+                .id(question.getId())
+                .question(question.getQuestion())
+                .answerTime(question.getAnswerTime())
+                .answers(question.getAnswers().stream()
+                    .map(answer -> AnswerDto.builder()
+                        .id(answer.getId())
+                        .answer(answer.getAnswer())
+                        .isCorrect(answer.getIsCorrect())
+                        .build())
+                    .collect(Collectors.toList()))
+                .build())
+            .collect(Collectors.toList()))
+        .build();
+  }
+
   @PostMapping
   @Transactional
   public ResponseEntity<Object> saveNewQuiz(@RequestBody QuizDto newQuiz) {
@@ -84,19 +125,7 @@ public class QuizController {
 
     // Save questions
     for (QuestionDto questionDto : newQuiz.getQuestions()) {
-      var savedQuestion = questionRepository.save(Question.builder()
-          .quiz(savedQuiz)
-          .question(questionDto.getQuestion())
-          .answerTime(questionDto.getAnswerTime())
-          .build());
-
-      for (AnswerDto answerDto : questionDto.getAnswers()) {
-        answerRepository.save(Answer.builder()
-            .question(savedQuestion)
-            .answer(answerDto.getAnswer())
-            .isCorrect(answerDto.getIsCorrect())
-            .build());
-      }
+      saveQuestionAndAnswers(questionDto, savedQuiz);
     }
 
     return new ResponseEntity<>(HttpStatus.CREATED);
@@ -107,6 +136,142 @@ public class QuizController {
   public ResponseEntity<Object> handleException(Exception e) {
     e.printStackTrace();
     return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+  }
+
+  @PutMapping
+  public ResponseEntity<Object> updateQuiz(@RequestBody QuizDto updateQuiz) {
+    var username = securityContext.getLoggedInUser();
+    var user = userRepository.findByName(username);
+
+    Optional<Quiz> optionalQuiz = quizRepository.findById(updateQuiz.getId());
+    if (optionalQuiz.isEmpty() || user.isEmpty()) {
+      return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    }
+
+    Quiz oldQuiz = optionalQuiz.get();
+    if (!oldQuiz.getUser().getId().equals(user.get().getId())) {
+      return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+    }
+
+    var updatedQuestions = updateQuiz.getQuestions();
+    var oldQuestions = oldQuiz.getQuestions();
+
+    oldQuiz.setName(updateQuiz.getName());
+
+    removeOldQuestions(oldQuestions, updatedQuestions);
+    createOrUpdateQuestions(oldQuiz, updatedQuestions);
+
+    // Update Answers
+    for (var updatedQuestion : updateQuiz.getQuestions()) {
+      if (updatedQuestion.getId() == null) {
+        continue;
+      }
+
+      var oldQuestion = oldQuiz.getQuestions().stream()
+          .filter(question -> question.getId().equals(updatedQuestion.getId()))
+          .findFirst();
+
+      if (oldQuestion.isEmpty()) {
+        continue;
+      }
+
+      removeOldAnswers(oldQuestion.get().getAnswers(), updatedQuestion.getAnswers());
+      createOrUpdateAnswers(oldQuestion.get(), updatedQuestion.getAnswers());
+    }
+
+    quizRepository.save(oldQuiz);
+
+    return new ResponseEntity<>(HttpStatus.CREATED);
+  }
+
+  private void createOrUpdateQuestions(Quiz oldQuiz, List<QuestionDto> updatedQuestions) {
+    var oldQuestions = oldQuiz.getQuestions();
+    for (var updatedQuestion : updatedQuestions) {
+      if (updatedQuestion.getId() != null) {
+        // Update Question
+
+        oldQuestions.stream()
+            .filter(oldQuestion -> oldQuestion.getId().equals(updatedQuestion.getId()))
+            .findFirst()
+            .ifPresent(oldQuestion -> {
+              oldQuestion.setQuestion(updatedQuestion.getQuestion());
+              oldQuestion.setAnswerTime(updatedQuestion.getAnswerTime());
+            });
+      } else {
+        // Creating new Question with new answers
+        saveQuestionAndAnswers(updatedQuestion, oldQuiz);
+      }
+    }
+  }
+
+  private void createOrUpdateAnswers(Question oldQuestion, List<AnswerDto> updatedAnswers) {
+    var oldAnswers = oldQuestion.getAnswers();
+    for (var updatedAnswer : updatedAnswers) {
+      if (updatedAnswer.getId() != null) {
+        oldAnswers.stream().filter(oldAnswer -> oldAnswer.getId().equals(updatedAnswer.getId()))
+            .findFirst()
+            .ifPresent(oldAnswer -> {
+              oldAnswer.setAnswer(updatedAnswer.getAnswer());
+              oldAnswer.setIsCorrect(updatedAnswer.getIsCorrect());
+            });
+      } else {
+        saveAnswer(updatedAnswer, oldQuestion);
+      }
+    }
+  }
+
+  private void removeOldQuestions(Set<Question> oldQuestions, List<QuestionDto> updatedQuestion) {
+    // Remove old questions
+    Set<Question> toRemoveQuestions = new HashSet<>();
+    for (var oldQuestion : oldQuestions) {
+      if (updatedQuestion.contains(oldQuestion)) {
+        continue;
+      }
+
+      for (var answer : oldQuestion.getAnswers()) {
+        answerRepository.deleteById(answer.getId());
+      }
+
+      questionRepository.deleteById(oldQuestion.getId());
+      toRemoveQuestions.add(oldQuestion);
+    }
+    oldQuestions.removeAll(toRemoveQuestions);
+  }
+
+  private void removeOldAnswers(Set<Answer> oldAnswers, List<AnswerDto> updatedAnswers) {
+    // Remove old answers
+    Set<Answer> toRemoveAnswer = new HashSet<>();
+    for (var oldAnswer : oldAnswers) {
+      if (updatedAnswers.contains(oldAnswer)) {
+        continue;
+      }
+
+      log.info("Removing Answer: " + oldAnswer.getAnswer());
+      toRemoveAnswer.add(oldAnswer);
+      answerRepository.deleteById(oldAnswer.getId());
+    }
+    oldAnswers.removeAll(toRemoveAnswer);
+  }
+
+  private void saveQuestionAndAnswers(QuestionDto newQuestion, Quiz quiz) {
+    var savedQuestion = questionRepository.save(Question.builder()
+        .quiz(quiz)
+        .question(newQuestion.getQuestion())
+        .answerTime(newQuestion.getAnswerTime())
+        .build());
+
+    // Save answers
+    for (AnswerDto answerDto : newQuestion.getAnswers()) {
+      saveAnswer(answerDto, savedQuestion);
+    }
+  }
+
+  private void saveAnswer(AnswerDto newAnswer, Question question) {
+    answerRepository.save(Answer.builder()
+        .question(question)
+        .answer(newAnswer.getAnswer())
+        .isCorrect(newAnswer.getIsCorrect())
+        .build());
   }
 
   @PostMapping("/{quizId}")

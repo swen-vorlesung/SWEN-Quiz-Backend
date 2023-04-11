@@ -3,7 +3,7 @@ package de.doubleslash.quiz.repository.dao.quiz;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import de.doubleslash.quiz.repository.dao.auth.User;
-import java.util.List;
+import java.util.Set;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -40,7 +40,7 @@ public class Quiz {
   @OneToMany(mappedBy = "quiz", fetch = FetchType.EAGER)
   @JsonManagedReference
   @OrderBy("id")
-  private List<Question> questions;
+  private Set<Question> questions;
 
   private String name;
 

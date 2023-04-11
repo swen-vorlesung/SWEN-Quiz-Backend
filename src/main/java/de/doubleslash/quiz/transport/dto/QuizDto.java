@@ -14,6 +14,8 @@ import lombok.Setter;
 @Builder
 public class QuizDto {
 
+    private Long id;
+
     private String name;
 
     private List<QuestionDto> questions;
