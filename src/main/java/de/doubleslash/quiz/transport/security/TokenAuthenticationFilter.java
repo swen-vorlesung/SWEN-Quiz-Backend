@@ -1,12 +1,11 @@
 package de.doubleslash.quiz.transport.security;
 
-import static java.util.Optional.ofNullable;
-import static org.apache.commons.lang3.StringUtils.removeStart;
-import static org.springframework.http.HttpHeaders.AUTHORIZATION;
-
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Optional;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +18,8 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 @Slf4j
 public final class TokenAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
 
+  final String AUTH_TOKEN = "session_token";
+
   public TokenAuthenticationFilter(final RequestMatcher requiresAuth) {
     super(requiresAuth);
   }
@@ -30,13 +31,15 @@ public final class TokenAuthenticationFilter extends AbstractAuthenticationProce
   public Authentication attemptAuthentication(final HttpServletRequest request,
       final HttpServletResponse response) {
 
-    final String param = ofNullable(request.getHeader(AUTHORIZATION))
-        .orElse(request.getParameter("t"));
+    final Optional<Cookie> sessionCookie = Arrays.stream(request.getCookies())
+        .filter(cookie -> cookie.getName().equals(AUTH_TOKEN))
+        .findFirst();
 
-    final String token = ofNullable(param)
-        .map(value -> removeStart(value, "Bearer"))
-        .map(String::trim)
-        .orElseThrow(() -> new BadCredentialsException("No Token Found!"));
+    if (sessionCookie.isEmpty()) {
+      throw new BadCredentialsException("No Token Found!");
+    }
+
+    final String token = sessionCookie.get().getValue();
 
     final Authentication auth = new UsernamePasswordAuthenticationToken(token, token);
     log.info("^^^^^^^^ auth: " + auth);
