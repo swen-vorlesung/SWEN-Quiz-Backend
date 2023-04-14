@@ -1,6 +1,6 @@
 name: Build and test swen-quiz-backend
 
-on: [ push ]
+on: [ pull_request ]
 
 jobs:
   build:
