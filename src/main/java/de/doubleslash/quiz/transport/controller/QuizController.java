@@ -26,6 +26,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -246,7 +247,7 @@ public class QuizController {
         continue;
       }
 
-      log.info("Removing Answer: " + oldAnswer.getAnswer());
+      log.debug("Removing Answer: " + oldAnswer.getAnswer());
       toRemoveAnswer.add(oldAnswer);
       answerRepository.deleteById(oldAnswer.getId());
     }
@@ -289,5 +290,32 @@ public class QuizController {
       }
     }
     return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+  }
+
+  @DeleteMapping("/{quizId}")
+  public ResponseEntity<Object> removeQuiz(@PathVariable(value = "quizId") Long quizId) {
+    var username = securityContext.getLoggedInUser();
+    var user = userRepository.findByName(username);
+    var quiz = quizRepository.findById(quizId);
+
+    if (user.isEmpty()) {
+      return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    }
+
+    if (quiz.isEmpty()) {
+      return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    // Check if user has the quiz
+    if (!quiz.get().getUser().getId().equals(user.get().getId())) {
+      return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    }
+
+    var questions = quiz.get().getQuestions();
+    questions.forEach(question -> answerRepository.deleteAll(question.getAnswers()));
+    questionRepository.deleteAll(questions);
+    quizRepository.delete(quiz.get());
+
+    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
   }
 }
