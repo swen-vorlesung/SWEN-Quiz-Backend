@@ -11,7 +11,10 @@ public class Participant {
 
   private int score = 0;
 
+  private int gainedPoints = 0;
+
   public void addScore(int score) {
+    this.gainedPoints = score;
     this.score += score;
   }
 }
