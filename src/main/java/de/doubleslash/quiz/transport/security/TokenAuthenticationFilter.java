@@ -31,11 +31,22 @@ public final class TokenAuthenticationFilter extends AbstractAuthenticationProce
   public Authentication attemptAuthentication(final HttpServletRequest request,
       final HttpServletResponse response) {
 
+    Cookie[] cookies = request.getCookies();
+
+    log.info("COOKIES:");
+    if (cookies.length > 0) {
+      Arrays.stream(cookies)
+          .forEach(cookie -> log.info(cookie.getName() + ": " + cookie.getValue()));
+    } else {
+      log.info("NO COOKIES PROVIDED!");
+    }
+
     final Optional<Cookie> sessionCookie = Arrays.stream(request.getCookies())
         .filter(cookie -> cookie.getName().equals(AUTH_TOKEN))
         .findFirst();
 
     if (sessionCookie.isEmpty()) {
+      log.info("NO TOKEN FOUND!");
       throw new BadCredentialsException("No Token Found!");
     }
 
