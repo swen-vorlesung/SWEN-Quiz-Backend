@@ -34,14 +34,15 @@ public final class TokenAuthenticationFilter extends AbstractAuthenticationProce
     Cookie[] cookies = request.getCookies();
 
     log.info("COOKIES:");
-    if (cookies.length > 0) {
+    if (cookies != null) {
       Arrays.stream(cookies)
           .forEach(cookie -> log.info(cookie.getName() + ": " + cookie.getValue()));
     } else {
       log.info("NO COOKIES PROVIDED!");
+      throw new BadCredentialsException("No Cookie Found!");
     }
 
-    final Optional<Cookie> sessionCookie = Arrays.stream(request.getCookies())
+    final Optional<Cookie> sessionCookie = Arrays.stream(cookies)
         .filter(cookie -> cookie.getName().equals(AUTH_TOKEN))
         .findFirst();
 

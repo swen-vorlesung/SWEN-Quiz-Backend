@@ -39,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.testcontainers.containers.MSSQLServerContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -138,11 +139,13 @@ public class End2EndIT extends AbstractContainerTest {
     login.setPassword("DEMO");
     login.setUsername("DEMO");
 
+    MockHttpServletResponse response = new MockHttpServletResponse();
+
     //Act
-    var token = logInController.login(login);
+    logInController.login(login, response);
 
     //Assert
-    assertNotNull(token);
+    assertNotNull(response.getCookie("session_token"));
   }
 
   @Test
@@ -151,10 +154,12 @@ public class End2EndIT extends AbstractContainerTest {
     var login = new LogIn();
     login.setPassword("DEMO");
     login.setUsername("DEMO1");
-    RuntimeException runtimeException = assertThrows(RuntimeException.class, () -> {
 
+    MockHttpServletResponse response = new MockHttpServletResponse();
+
+    RuntimeException runtimeException = assertThrows(RuntimeException.class, () -> {
       //Act
-      var token = logInController.login(login);
+      logInController.login(login, response);
     });
 
     //Assert
