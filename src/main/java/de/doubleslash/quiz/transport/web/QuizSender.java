@@ -8,6 +8,7 @@ import de.doubleslash.quiz.transport.web.events.ParticipantsUpdatedEvent;
 import de.doubleslash.quiz.transport.web.events.QuizEvent;
 import de.doubleslash.quiz.transport.web.events.QuizStateUpdatedEvent;
 import de.doubleslash.quiz.transport.web.events.ResultsUpdatedEvent;
+import de.doubleslash.quiz.transport.web.events.SendAnsweredParticipantsEvent;
 import de.doubleslash.quiz.transport.web.events.TimeOverEvent;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -20,12 +21,16 @@ public class QuizSender {
 
   private final SimpMessagingTemplate simpMessagingTemplate;
 
-  public void sendNewQuestionEvent(String sessionId, Question question) {
-    sendEvent(sessionId, new NewQuestionEvent(question));
+  public void sendNewQuestionEvent(String sessionId, Question question, int amountOfParticipants) {
+    sendEvent(sessionId, new NewQuestionEvent(question, amountOfParticipants));
   }
 
   public void sendParticipantsUpdatedEvent(String sessionId, List<Participant> participants) {
     sendEvent(sessionId, new ParticipantsUpdatedEvent(participants));
+  }
+
+  public void sendAnsweredParticipantsEvent(String sessionId, int answeredParticipants) {
+    sendEvent(sessionId, new SendAnsweredParticipantsEvent(answeredParticipants));
   }
 
   public void sendResultsUpdatedEvent(String sessionId, List<Participant> participants,

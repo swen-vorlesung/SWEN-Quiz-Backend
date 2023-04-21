@@ -7,5 +7,7 @@ public interface QuizSocket {
 
   void sendResults(String sessionId, List<Participant> participants, boolean isFinished);
 
+  void sendAnsweredParticipants(String sessionId, int answeredParticipants);
+
   void sendTimeOut(String sessionId);
 }
