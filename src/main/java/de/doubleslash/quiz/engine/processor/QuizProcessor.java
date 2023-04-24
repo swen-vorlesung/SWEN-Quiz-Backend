@@ -119,6 +119,7 @@ public class QuizProcessor {
   public void addParticipantAnswer(String nickname, List<Long> answerIds) {
 
     checkSubmittedAnswers(nickname);
+    socket.sendAnsweredParticipants(sessionId, submittedAnswers);
 
     if (waitingForAnswers) {
       participants.stream()
