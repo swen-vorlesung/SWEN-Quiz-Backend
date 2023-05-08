@@ -35,9 +35,9 @@ public class AuthenticationController {
         .orElseThrow(() -> new RuntimeException("invalid login and/or password"));
 
     ResponseCookie cookie = ResponseCookie.from("session_token", token)
-        .httpOnly(false)
+        .httpOnly(true)
         .secure(true)
-        .sameSite("None")
+        .sameSite("Strict")
         .maxAge(Duration.ofDays(1))
         .path("/")
         .build();
