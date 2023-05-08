@@ -8,8 +8,10 @@ import lombok.Getter;
 public class NewQuestionEvent implements QuizEvent {
 
   private final QuestionView question;
+  private final int amountOfParticipants;
 
-  public NewQuestionEvent(Question question) {
+  public NewQuestionEvent(Question question, int amountOfParticipants) {
     this.question = new QuestionView(question);
+    this.amountOfParticipants = amountOfParticipants;
   }
 }

@@ -84,11 +84,17 @@ public class QuizAdapter implements QuizHandler, QuizSocket {
 
   @Override
   public boolean startNewQuestion(String sessionId) {
-    return findRunningQuizProcessor(sessionId)
-        .map(QuizProcessor::getNextQuestion)
+    var quizProcessor = findRunningQuizProcessor(sessionId);
+
+    if (quizProcessor.isEmpty()) {
+      return false;
+    }
+
+    int numberOfParticipants = quizProcessor.get().getParticipants().size();
+    return quizProcessor.map(QuizProcessor::getNextQuestion)
         .flatMap(q -> q)
         .map(q -> {
-          sender.sendNewQuestionEvent(sessionId, q);
+          sender.sendNewQuestionEvent(sessionId, q, numberOfParticipants);
           return true;
         })
         .orElse(false);
@@ -121,6 +127,11 @@ public class QuizAdapter implements QuizHandler, QuizSocket {
           .findFirst()
           .ifPresent(quizes::remove);
     }
+  }
+
+  @Override
+  public void sendAnsweredParticipants(String sessionId, int answeredParticipants) {
+    sender.sendAnsweredParticipantsEvent(sessionId, answeredParticipants);
   }
 
   @Override
