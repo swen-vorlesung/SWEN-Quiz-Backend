@@ -14,6 +14,7 @@ import de.doubleslash.quiz.transport.dto.QuizDto;
 import de.doubleslash.quiz.transport.dto.QuizView;
 import de.doubleslash.quiz.transport.dto.SessionId;
 import de.doubleslash.quiz.transport.security.SecurityContextService;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -67,6 +68,7 @@ public class QuizController {
                 .name(q.getName())
                 .id(q.getId())
                 .build())
+            .sorted(Comparator.comparing(o -> o.getName().toLowerCase()))
             .collect(Collectors.toList()))
         .orElse(Lists.newArrayList());
   }
