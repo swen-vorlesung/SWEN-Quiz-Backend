@@ -20,15 +20,13 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-@NoArgsConstructor
+@Data
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder
-@Getter
-@Setter
 @Entity
 @Table(name = "QUI02_QUESTION")
 public class Question {
