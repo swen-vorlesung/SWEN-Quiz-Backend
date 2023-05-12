@@ -25,7 +25,6 @@ import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -62,6 +61,7 @@ public class QuizControllerTest {
 
   Long QUIZ_ID;
   Long QUESTION_ID;
+  Long SECOND_QUESTION_ID;
   Long ANSWER_ID;
   Long SECOND_ANSWER_ID;
 
@@ -343,16 +343,59 @@ public class QuizControllerTest {
   }
 
   @Test
-  @Disabled
-  //TODO: Implement Test
+  public void testQueryUpdateNewQuiz_InvalidQuizID() {
+    // Arrange
+    when(securityContext.getLoggedInUser()).thenReturn(DEMO_USER);
+
+    QuizDto quizDto = QuizDto.builder()
+        .id(QUIZ_ID + 5)
+        .name("Invalid Quiz")
+        .questions(null)
+        .build();
+
+    // Act
+    var response = quizController.updateQuiz(quizDto);
+
+    // Assert
+    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+  }
+
+  @Test
+  public void testQueryUpdateNewQuiz_UserDoesntHaveQuiz() {
+    // Arrange
+    String notDemoUser = "NOT" + DEMO_USER;
+    User user = User.builder()
+        .name(notDemoUser)
+        .password("secure_password")
+        .enabled(true)
+        .build();
+    userRepository.save(user);
+
+    when(securityContext.getLoggedInUser()).thenReturn(notDemoUser);
+
+    QuizDto quizDto = QuizDto.builder()
+        .id(QUIZ_ID)
+        .name("Valid Quiz")
+        .questions(null)
+        .build();
+
+    // Act
+    var response = quizController.updateQuiz(quizDto);
+
+    // Assert
+    assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+  }
+
+  @Test
   public void testQueryUpdateQuiz_deleteQuestion() {
     // Arrange
     when(securityContext.getLoggedInUser()).thenReturn(DEMO_USER);
 
+    createQuizWithTwoQuestions();
+
     String newQuizName = "New Quiz Name";
     String newQuestionName = "New Question Name";
     String newAnswerName = "New Answer Name";
-    String newSecondAnswerName = "New Second Answer";
 
     AnswerDto answerDto = AnswerDto.builder()
         .id(ANSWER_ID)
@@ -360,17 +403,11 @@ public class QuizControllerTest {
         .isCorrect(true)
         .build();
 
-    AnswerDto secondAnswerDto = AnswerDto.builder()
-        .id(SECOND_ANSWER_ID)
-        .answer(newSecondAnswerName)
-        .isCorrect(true)
-        .build();
-
     QuestionDto questionDto = QuestionDto.builder()
         .id(QUESTION_ID)
         .question(newQuestionName)
         .answerTime(1020L)
-        .answers(List.of(answerDto, secondAnswerDto))
+        .answers(List.of(answerDto))
         .build();
 
     QuizDto quizDto = QuizDto.builder()
@@ -383,16 +420,52 @@ public class QuizControllerTest {
     var response = quizController.updateQuiz(quizDto);
 
     // Assert
-    var quiz = quizRepository.findById(QUIZ_ID);
-    var question = questionRepository.findById(QUESTION_ID);
-    var answer = answerRepository.findById(ANSWER_ID);
+    var secondQuestion = questionRepository.findById(SECOND_QUESTION_ID);
     var secondAnswer = answerRepository.findById(SECOND_ANSWER_ID);
 
     assertEquals(HttpStatus.CREATED, response.getStatusCode());
-    assertTrue(quiz.isEmpty());
-    assertTrue(question.isEmpty());
-    assertTrue(answer.isEmpty());
+    assertTrue(secondQuestion.isEmpty());
     assertTrue(secondAnswer.isEmpty());
+  }
+
+  private void createQuizWithTwoQuestions() {
+    deleteEverythingInDatabase();
+
+    User newUser = User.builder()
+        .name(DEMO_USER)
+        .password(DEMO_USER)
+        .enabled(true)
+        .build();
+    userRepository.save(newUser);
+
+    var quiz = new Quiz();
+    quiz.setName("Test Quiz");
+    quiz.setUser(newUser);
+    QUIZ_ID = quizRepository.save(quiz).getId();
+
+    var question = new Question();
+    question.setQuestion("Test Question");
+    question.setAnswerTime(120L);
+    question.setQuiz(quiz);
+    QUESTION_ID = questionRepository.save(question).getId();
+
+    var secondQuestion = new Question();
+    secondQuestion.setQuestion("Second Test Question");
+    secondQuestion.setAnswerTime(560L);
+    secondQuestion.setQuiz(quiz);
+    SECOND_QUESTION_ID = questionRepository.save(secondQuestion).getId();
+
+    var a1 = new Answer();
+    a1.setAnswer("First Question Test Answer");
+    a1.setIsCorrect(true);
+    a1.setQuestion(question);
+    ANSWER_ID = answerRepository.save(a1).getId();
+
+    var a2 = new Answer();
+    a2.setAnswer("Second Question Test Answer 2");
+    a2.setIsCorrect(false);
+    a2.setQuestion(secondQuestion);
+    SECOND_ANSWER_ID = answerRepository.save(a2).getId();
   }
 
   @Test
@@ -436,6 +509,118 @@ public class QuizControllerTest {
   }
 
   @Test
+  public void testQueryUpdateQuiz_createQuestion() {
+    // Arrange
+    when(securityContext.getLoggedInUser()).thenReturn(DEMO_USER);
+
+    String newQuestionName = "Newly created Question Name";
+    String newAnswerName = "Newly created Answer Name";
+
+    AnswerDto answerDto = AnswerDto.builder()
+        .id(ANSWER_ID)
+        .answer(newAnswerName)
+        .isCorrect(true)
+        .build();
+
+    QuestionDto questionDto = QuestionDto.builder()
+        .id(QUESTION_ID)
+        .question(newQuestionName)
+        .answerTime(1020L)
+        .answers(List.of(answerDto))
+        .build();
+
+    AnswerDto newAnswerDto = AnswerDto.builder()
+        .answer(newAnswerName)
+        .isCorrect(true)
+        .build();
+
+    QuestionDto newQuestionDto = QuestionDto.builder()
+        .question(newQuestionName)
+        .answerTime(500L)
+        .answers(List.of(newAnswerDto))
+        .build();
+
+    QuizDto quizDto = QuizDto.builder()
+        .id(QUIZ_ID)
+        .name("Updated Quiz Name")
+        .questions(List.of(questionDto, newQuestionDto))
+        .build();
+
+    // Act
+    var response = quizController.updateQuiz(quizDto);
+
+    // Assert
+    Optional<Quiz> quiz = quizRepository.findById(QUIZ_ID);
+    assertTrue(quiz.isPresent());
+
+    Optional<Question> newQuestion = quiz.get().getQuestions().stream()
+        .filter(question -> question.getQuestion().equals(newQuestionName))
+        .findFirst();
+    assertTrue(newQuestion.isPresent());
+
+    Optional<Answer> newAnswer = newQuestion.get().getAnswers().stream().findFirst();
+    assertTrue(newAnswer.isPresent());
+
+    assertEquals(HttpStatus.CREATED, response.getStatusCode());
+    assertEquals(2, quiz.get().getQuestions().size());
+    assertEquals(newQuestionName, newQuestion.get().getQuestion());
+    assertEquals(1, newQuestion.get().getAnswers().size());
+    assertEquals(newAnswerName, newAnswer.get().getAnswer());
+  }
+
+  @Test
+  public void testQueryUpdateQuiz_createAnswer() {
+    // Arrange
+    when(securityContext.getLoggedInUser()).thenReturn(DEMO_USER);
+
+    String newQuestionName = "Updated Question";
+    String newAnswerName = "Newly created Answer Name";
+
+    AnswerDto newAnswerDto = AnswerDto.builder()
+        .answer(newAnswerName)
+        .isCorrect(true)
+        .build();
+
+    AnswerDto answerDto = AnswerDto.builder()
+        .id(ANSWER_ID)
+        .answer(newAnswerName)
+        .isCorrect(true)
+        .build();
+
+    QuestionDto questionDto = QuestionDto.builder()
+        .id(QUESTION_ID)
+        .question(newQuestionName)
+        .answerTime(1020L)
+        .answers(List.of(answerDto, newAnswerDto))
+        .build();
+
+    QuizDto quizDto = QuizDto.builder()
+        .id(QUIZ_ID)
+        .name("Updated Quiz Name")
+        .questions(List.of(questionDto))
+        .build();
+
+    // Act
+    var response = quizController.updateQuiz(quizDto);
+
+    // Assert
+    Optional<Quiz> quiz = quizRepository.findById(QUIZ_ID);
+    assertTrue(quiz.isPresent());
+
+    Optional<Question> question = quiz.get().getQuestions().stream().findFirst();
+    assertTrue(question.isPresent());
+
+    Optional<Answer> newAnswer = question.get().getAnswers().stream()
+        .filter(answer -> answer.getAnswer().equals(newAnswerName))
+        .findFirst();
+    assertTrue(newAnswer.isPresent());
+
+    assertEquals(HttpStatus.CREATED, response.getStatusCode());
+    assertEquals(2, question.get().getAnswers().size());
+    assertEquals(newAnswerName, newAnswer.get().getAnswer());
+  }
+
+  @Test
   public void testQueryDeleteQuiz_deleteQuiz() {
     // Arrange
     when(securityContext.getLoggedInUser()).thenReturn(DEMO_USER);
@@ -448,8 +633,74 @@ public class QuizControllerTest {
     var questionList = questionRepository.findAll();
     var answerList = answerRepository.findAll();
 
+    assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     assertEquals(0, quizList.size());
     assertEquals(0, questionList.size());
     assertEquals(0, answerList.size());
+  }
+
+  @Test
+  void testQueryDeleteQuiz_InvalidUser() {
+    // Arrange
+    when(securityContext.getLoggedInUser()).thenReturn("NOT" + DEMO_USER);
+
+    // Act
+    var response = quizController.removeQuiz(QUIZ_ID);
+
+    // Assert
+    var quiz = quizRepository.findById(QUIZ_ID);
+    var question = questionRepository.findById(QUESTION_ID);
+    var answer = answerRepository.findById(ANSWER_ID);
+
+    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    assertTrue(quiz.isPresent());
+    assertTrue(question.isPresent());
+    assertTrue(answer.isPresent());
+  }
+
+  @Test
+  void testQueryDeleteQuiz_InvalidQuiz() {
+    // Arrange
+    when(securityContext.getLoggedInUser()).thenReturn(DEMO_USER);
+
+    // Act
+    var response = quizController.removeQuiz(QUIZ_ID + 5);
+
+    // Assert
+    var quiz = quizRepository.findById(QUIZ_ID);
+    var question = questionRepository.findById(QUESTION_ID);
+    var answer = answerRepository.findById(ANSWER_ID);
+
+    assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+    assertTrue(quiz.isPresent());
+    assertTrue(question.isPresent());
+    assertTrue(answer.isPresent());
+  }
+
+  @Test
+  void testQueryDeleteQuiz_UserDoesntHaveQuiz() {
+    // Arrange
+    String notDemoUser = "NOT" + DEMO_USER;
+    User user = User.builder()
+        .name(notDemoUser)
+        .password("secure_password")
+        .enabled(true)
+        .build();
+    userRepository.save(user);
+
+    when(securityContext.getLoggedInUser()).thenReturn(notDemoUser);
+
+    // Act
+    var response = quizController.removeQuiz(QUIZ_ID);
+
+    // Assert
+    var quiz = quizRepository.findById(QUIZ_ID);
+    var question = questionRepository.findById(QUESTION_ID);
+    var answer = answerRepository.findById(ANSWER_ID);
+
+    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    assertTrue(quiz.isPresent());
+    assertTrue(question.isPresent());
+    assertTrue(answer.isPresent());
   }
 }
