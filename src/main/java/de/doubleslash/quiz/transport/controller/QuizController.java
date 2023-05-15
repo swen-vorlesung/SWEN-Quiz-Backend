@@ -120,6 +120,10 @@ public class QuizController {
       return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 
+    if (newQuiz == null) {
+      return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    }
+
     // Save quiz
     var savedQuiz = quizRepository.save(Quiz.builder()
         .user(user.get())
@@ -142,6 +146,7 @@ public class QuizController {
   }
 
   @PutMapping
+  @Transactional
   public ResponseEntity<Object> updateQuiz(@RequestBody QuizDto updateQuiz) {
     var username = securityContext.getLoggedInUser();
     var user = userRepository.findByName(username);
@@ -156,10 +161,15 @@ public class QuizController {
       return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 
+    oldQuiz.setName(updateQuiz.getName());
+
+    if (updateQuiz.getQuestions() == null) {
+      quizRepository.save(oldQuiz);
+      return new ResponseEntity<>(HttpStatus.CREATED);
+    }
+
     var updatedQuestions = updateQuiz.getQuestions();
     var oldQuestions = oldQuiz.getQuestions();
-
-    oldQuiz.setName(updateQuiz.getName());
 
     removeOldQuestions(oldQuestions, updatedQuestions);
     createOrUpdateQuestions(oldQuiz, updatedQuestions);
@@ -278,6 +288,7 @@ public class QuizController {
   }
 
   @PostMapping("/{quizId}")
+  @Transactional
   public ResponseEntity<SessionId> createNewQuiz(@PathVariable(value = "quizId") Long quizId) {
     var username = securityContext.getLoggedInUser();
     var quiz = userRepository.findByName(username)
@@ -295,6 +306,7 @@ public class QuizController {
   }
 
   @DeleteMapping("/{quizId}")
+  @Transactional
   public ResponseEntity<Object> removeQuiz(@PathVariable(value = "quizId") Long quizId) {
     var username = securityContext.getLoggedInUser();
     var user = userRepository.findByName(username);
@@ -314,6 +326,7 @@ public class QuizController {
     }
 
     var questions = quiz.get().getQuestions();
+
     questions.forEach(question -> answerRepository.deleteAll(question.getAnswers()));
     questionRepository.deleteAll(questions);
     quizRepository.delete(quiz.get());
